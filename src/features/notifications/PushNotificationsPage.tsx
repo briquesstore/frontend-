@@ -30,6 +30,19 @@ const NOTIFICATION_TYPES = [
   { value: 'ALERT', label: 'Alerte importante' },
 ];
 
+// Pages de redirection disponibles (deepLinks)
+const DEEP_LINKS = [
+  { value: '', label: 'Aucune redirection' },
+  { value: '/home', label: 'Accueil' },
+  { value: '/catalog', label: 'Catalogue produits' },
+  { value: '/orders', label: 'Mes commandes' },
+  { value: '/cart', label: 'Panier' },
+  { value: '/profile', label: 'Profil' },
+  { value: '/notifications', label: 'Centre de notifications' },
+  { value: '/promotions', label: 'Promotions en cours' },
+  { value: '/simulator', label: 'Simulateur / Estimateur' },
+];
+
 export default function PushNotificationsPage() {
   // Mode: 'broadcast' = push direct sans stockage, 'transactional' = stocké en base + push
   const [notificationMode, setNotificationMode] = useState<'broadcast' | 'transactional'>('broadcast');
@@ -37,6 +50,7 @@ export default function PushNotificationsPage() {
   const [targetType, setTargetType] = useState<'user' | 'users' | 'all' | 'segment'>('all');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [deepLink, setDeepLink] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [clientType, setClientType] = useState<'PARTICULIER' | 'PROFESSIONNEL'>('PARTICULIER');
   const [loading, setLoading] = useState(false);
@@ -112,6 +126,9 @@ export default function PushNotificationsPage() {
       let endpoint: string;
       let payload: any;
 
+      // Préparer les data avec deepLink si défini
+      const data = deepLink ? { deepLink } : undefined;
+
       if (notificationMode === 'transactional') {
         // Mode TRANSACTIONNEL : stocké en base + push
         endpoint = '/notifications/admin/create';
@@ -119,6 +136,7 @@ export default function PushNotificationsPage() {
           title,
           body,
           type: notificationType,
+          data,
         };
 
         if (targetType === 'user') {
@@ -139,7 +157,7 @@ export default function PushNotificationsPage() {
       } else {
         // Mode BROADCAST : push direct sans stockage
         endpoint = '/push-notifications';
-        payload = { title, body };
+        payload = { title, body, data };
 
         switch (targetType) {
           case 'user':
@@ -178,6 +196,7 @@ export default function PushNotificationsPage() {
         setResult({ success: true, message: `Notification ${modeLabel} avec succès${countInfo}` });
         setTitle('');
         setBody('');
+        setDeepLink('');
         setSelectedUserIds([]);
       } else {
         setResult({ success: false, message: response.data.error || 'Aucun token actif trouvé - les utilisateurs doivent ouvrir l\'app mobile' });
@@ -454,6 +473,27 @@ export default function PushNotificationsPage() {
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
                 />
+              </div>
+
+              {/* Redirection (deepLink) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Redirection au clic (optionnel)
+                </label>
+                <select
+                  value={deepLink}
+                  onChange={(e) => setDeepLink(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8C00]"
+                >
+                  {DEEP_LINKS.map((link) => (
+                    <option key={link.value} value={link.value}>
+                      {link.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Quand l'utilisateur clique sur la notification, il sera redirigé vers cette page
+                </p>
               </div>
 
               {/* Bouton d'envoi */}
