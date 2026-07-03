@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Users, Megaphone, Bell } from 'lucide-react';
+import { Send, Users, Megaphone, Bell, Database, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 
@@ -22,7 +22,18 @@ interface User {
   status: string;
 }
 
+// Types de notifications disponibles pour les transactionnelles
+const NOTIFICATION_TYPES = [
+  { value: 'ADMIN_MESSAGE', label: 'Message administrateur' },
+  { value: 'PROMOTION', label: 'Promotion' },
+  { value: 'INFO', label: 'Information générale' },
+  { value: 'ALERT', label: 'Alerte importante' },
+];
+
 export default function PushNotificationsPage() {
+  // Mode: 'broadcast' = push direct sans stockage, 'transactional' = stocké en base + push
+  const [notificationMode, setNotificationMode] = useState<'broadcast' | 'transactional'>('broadcast');
+  const [notificationType, setNotificationType] = useState('ADMIN_MESSAGE');
   const [targetType, setTargetType] = useState<'user' | 'users' | 'all' | 'segment'>('all');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -88,45 +99,83 @@ export default function PushNotificationsPage() {
       return;
     }
 
+    // Mode transactionnel nécessite un utilisateur spécifique
+    if (notificationMode === 'transactional' && targetType !== 'user' && targetType !== 'users') {
+      setResult({ success: false, message: 'Les notifications transactionnelles nécessitent de sélectionner un ou plusieurs utilisateurs' });
+      return;
+    }
+
     setLoading(true);
     setResult(null);
 
     try {
-      let endpoint = '/push-notifications';
-      let payload: any = { title, body };
+      let endpoint: string;
+      let payload: any;
 
-      switch (targetType) {
-        case 'user':
+      if (notificationMode === 'transactional') {
+        // Mode TRANSACTIONNEL : stocké en base + push
+        endpoint = '/notifications/admin/create';
+        payload = {
+          title,
+          body,
+          type: notificationType,
+        };
+
+        if (targetType === 'user') {
           if (selectedUserIds.length === 0) {
-            setResult({ success: false, message: 'Veuillez sélectionner au moins un utilisateur' });
+            setResult({ success: false, message: 'Veuillez sélectionner un utilisateur' });
             setLoading(false);
             return;
           }
-          endpoint += '/send-to-user';
           payload.userId = selectedUserIds[0];
-          break;
-        case 'users':
+        } else if (targetType === 'users') {
           if (selectedUserIds.length === 0) {
             setResult({ success: false, message: 'Veuillez sélectionner au moins un utilisateur' });
             setLoading(false);
             return;
           }
-          endpoint += '/send-to-users';
           payload.userIds = selectedUserIds;
-          break;
-        case 'segment':
-          endpoint += '/send-to-segment';
-          payload.clientType = clientType;
-          break;
-        case 'all':
-          endpoint += '/send-to-all';
-          break;
+        }
+      } else {
+        // Mode BROADCAST : push direct sans stockage
+        endpoint = '/push-notifications';
+        payload = { title, body };
+
+        switch (targetType) {
+          case 'user':
+            if (selectedUserIds.length === 0) {
+              setResult({ success: false, message: 'Veuillez sélectionner au moins un utilisateur' });
+              setLoading(false);
+              return;
+            }
+            endpoint += '/send-to-user';
+            payload.userId = selectedUserIds[0];
+            break;
+          case 'users':
+            if (selectedUserIds.length === 0) {
+              setResult({ success: false, message: 'Veuillez sélectionner au moins un utilisateur' });
+              setLoading(false);
+              return;
+            }
+            endpoint += '/send-to-users';
+            payload.userIds = selectedUserIds;
+            break;
+          case 'segment':
+            endpoint += '/send-to-segment';
+            payload.clientType = clientType;
+            break;
+          case 'all':
+            endpoint += '/send-to-all';
+            break;
+        }
       }
 
-      const response = await apiClient.post<{ success: boolean; error?: string }>(endpoint, payload);
+      const response = await apiClient.post<{ success: boolean; error?: string; count?: number }>(endpoint, payload);
       
       if (response.data.success) {
-        setResult({ success: true, message: 'Notification envoyée avec succès' });
+        const modeLabel = notificationMode === 'transactional' ? 'stockée et envoyée' : 'envoyée';
+        const countInfo = response.data.count ? ` à ${response.data.count} utilisateur(s)` : '';
+        setResult({ success: true, message: `Notification ${modeLabel} avec succès${countInfo}` });
         setTitle('');
         setBody('');
         setSelectedUserIds([]);
@@ -160,30 +209,108 @@ export default function PushNotificationsPage() {
             </h2>
 
             <div className="space-y-4">
+              {/* Mode de notification */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mode de notification
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setNotificationMode('broadcast');
+                      // Broadcast permet tous les types de cible
+                    }}
+                    className={cn(
+                      'flex items-center gap-3 p-4 rounded-lg border-2 transition-all',
+                      notificationMode === 'broadcast'
+                        ? 'border-[#FF8C00] bg-orange-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    )}
+                  >
+                    <Zap className={cn('h-6 w-6', notificationMode === 'broadcast' ? 'text-[#FF8C00]' : 'text-gray-400')} />
+                    <div className="text-left">
+                      <p className={cn('font-medium', notificationMode === 'broadcast' ? 'text-[#FF8C00]' : 'text-gray-700')}>
+                        Broadcast
+                      </p>
+                      <p className="text-xs text-gray-500">Push direct, non stocké</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNotificationMode('transactional');
+                      // Transactionnel nécessite un utilisateur spécifique
+                      if (targetType === 'all' || targetType === 'segment') {
+                        setTargetType('user');
+                      }
+                    }}
+                    className={cn(
+                      'flex items-center gap-3 p-4 rounded-lg border-2 transition-all',
+                      notificationMode === 'transactional'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    )}
+                  >
+                    <Database className={cn('h-6 w-6', notificationMode === 'transactional' ? 'text-blue-500' : 'text-gray-400')} />
+                    <div className="text-left">
+                      <p className={cn('font-medium', notificationMode === 'transactional' ? 'text-blue-600' : 'text-gray-700')}>
+                        Transactionnelle
+                      </p>
+                      <p className="text-xs text-gray-500">Stockée en base + push</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Type de notification (uniquement pour transactionnel) */}
+              {notificationMode === 'transactional' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type de notification
+                  </label>
+                  <select
+                    value={notificationType}
+                    onChange={(e) => setNotificationType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {NOTIFICATION_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Type de cible */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Type de cible
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {/* Tous - uniquement pour broadcast */}
                   <button
                     onClick={() => setTargetType('all')}
+                    disabled={notificationMode === 'transactional'}
                     className={cn(
                       'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                       targetType === 'all'
                         ? 'bg-[#FF8C00] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                      notificationMode === 'transactional' && 'opacity-50 cursor-not-allowed'
                     )}
                   >
                     Tous
                   </button>
+                  {/* Segment - uniquement pour broadcast */}
                   <button
                     onClick={() => setTargetType('segment')}
+                    disabled={notificationMode === 'transactional'}
                     className={cn(
                       'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                       targetType === 'segment'
                         ? 'bg-[#FF8C00] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                      notificationMode === 'transactional' && 'opacity-50 cursor-not-allowed'
                     )}
                   >
                     Segment
@@ -193,7 +320,7 @@ export default function PushNotificationsPage() {
                     className={cn(
                       'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                       targetType === 'user'
-                        ? 'bg-[#FF8C00] text-white'
+                        ? notificationMode === 'transactional' ? 'bg-blue-500 text-white' : 'bg-[#FF8C00] text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     )}
                   >
@@ -204,13 +331,18 @@ export default function PushNotificationsPage() {
                     className={cn(
                       'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                       targetType === 'users'
-                        ? 'bg-[#FF8C00] text-white'
+                        ? notificationMode === 'transactional' ? 'bg-blue-500 text-white' : 'bg-[#FF8C00] text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     )}
                   >
                     Multi-utilisateurs
                   </button>
                 </div>
+                {notificationMode === 'transactional' && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    ℹ️ Les notifications transactionnelles nécessitent de sélectionner un ou plusieurs utilisateurs
+                  </p>
+                )}
               </div>
 
               {/* Sélection de segment */}
@@ -377,12 +509,30 @@ export default function PushNotificationsPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Aide</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Modes de notification</h3>
+            <div className="text-sm text-gray-600 space-y-3">
+              <div className="p-3 bg-orange-50 rounded-md border border-orange-200">
+                <p className="font-medium text-orange-700 flex items-center gap-2">
+                  <Zap className="h-4 w-4" /> Broadcast
+                </p>
+                <p className="text-xs mt-1">Push direct sans stockage. Idéal pour les annonces générales, promos, infos marketing. L'utilisateur ne peut pas les retrouver dans son historique.</p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+                <p className="font-medium text-blue-700 flex items-center gap-2">
+                  <Database className="h-4 w-4" /> Transactionnelle
+                </p>
+                <p className="text-xs mt-1">Stockée en base + push. L'utilisateur peut la retrouver dans son centre de notifications. Idéal pour les messages importants personnalisés.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Types de cible</h3>
             <div className="text-sm text-gray-600 space-y-2">
-              <p>• <strong>Tous</strong> : Envoie à tous les utilisateurs avec un token actif</p>
-              <p>• <strong>Segment</strong> : Envoie à un type de client spécifique</p>
-              <p>• <strong>Utilisateur</strong> : Envoie à un utilisateur spécifique</p>
-              <p>• <strong>Multi-utilisateurs</strong> : Envoie à plusieurs utilisateurs</p>
+              <p>• <strong>Tous</strong> : Tous les utilisateurs avec un token actif (broadcast uniquement)</p>
+              <p>• <strong>Segment</strong> : Par type de client (broadcast uniquement)</p>
+              <p>• <strong>Utilisateur</strong> : Un utilisateur spécifique</p>
+              <p>• <strong>Multi-utilisateurs</strong> : Plusieurs utilisateurs sélectionnés</p>
             </div>
           </div>
         </div>
