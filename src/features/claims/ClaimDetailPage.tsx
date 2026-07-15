@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Phone, MessageCircle, Mail, Send,
-  UserCheck, CheckCircle, Plus, Image,
+  CheckCircle, Plus, Image, Loader2, AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
@@ -10,6 +10,7 @@ import { hasPermission } from '@/core/permissions';
 import { formatDateTime } from '@/core/utils/formatters';
 import { CLAIM_TYPE_LABELS, CLAIM_STATUS_LABELS } from '@/core/types';
 import type { ClaimStatus, ClaimType } from '@/core/types';
+import { claimsApiService, type ClaimDetail, type ResolveAction } from './services/claims-api.service';
 
 const STATUS_COLORS: Record<ClaimStatus, { bg: string; text: string }> = {
   OPEN: { bg: 'bg-red-50', text: 'text-red-700' },
@@ -18,55 +19,163 @@ const STATUS_COLORS: Record<ClaimStatus, { bg: string; text: string }> = {
   CLOSED: { bg: 'bg-gray-100', text: 'text-gray-600' },
 };
 
-const MOCK = {
-  id: '1',
-  number: 'REC-2026-0045',
-  orderId: 'o1',
-  orderNumber: 'CMD-2026-00892',
-  customerId: 'u1',
-  customerName: 'Kouassi Jean',
-  customerPhone: '+225 07 12 34 56',
-  customerEmail: 'kouassi@email.com',
-  type: 'DEFECTIVE_PRODUCT' as ClaimType,
-  status: 'OPEN' as ClaimStatus,
-  description: 'Lot de 200 briques pleines 20cm reçu avec des fissures visibles sur environ 30 unités. Les briques se cassent facilement, qualité non conforme à la commande.',
-  assignedTo: undefined as string | undefined,
-  assignedToName: undefined as string | undefined,
-  photoUrls: ['/placeholder1.jpg', '/placeholder2.jpg'],
-  resolution: undefined as string | undefined,
-  timeline: [
-    { id: 't1', action: 'Réclamation créée par le client', author: 'Kouassi Jean', date: '2026-03-05T07:30:00Z' },
-    { id: 't2', action: 'Photo jointe : fissures sur briques', author: 'Kouassi Jean', date: '2026-03-05T07:32:00Z' },
+const RESOLUTION_OPTIONS: Record<ClaimType, { value: ResolveAction; label: string }[]> = {
+  DEFECTIVE_PRODUCT: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'EXCHANGE', label: 'Échange' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
   ],
-  internalComments: [
-    { id: 'c1', content: 'Vérifier le lot en stock pour confirmer si c\'est un problème de fabrication.', author: 'Konan Marc', date: '2026-03-05T08:00:00Z' },
+  WRONG_PRODUCT: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'EXCHANGE', label: 'Échange' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
   ],
-  createdAt: '2026-03-05T07:30:00Z',
-  updatedAt: '2026-03-05T07:30:00Z',
+  DAMAGED_IN_TRANSIT: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'EXCHANGE', label: 'Échange' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
+  MISSING_ITEMS: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'EXCHANGE', label: 'Renvoi' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
+  DELIVERY_ISSUE: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
+  PREORDER_REFUND: [
+    { value: 'CANCEL', label: 'Annuler et rembourser' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
+  CANCELLATION_REQUEST: [
+    { value: 'CANCEL', label: 'Annuler et rembourser' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
+  OTHER: [
+    { value: 'REFUND', label: 'Remboursement' },
+    { value: 'GESTURE', label: 'Geste commercial' },
+    { value: 'REJECT', label: 'Refuser' },
+    { value: 'CLOSE', label: 'Clôturer' },
+  ],
 };
-
-type ResolutionType = 'REFUND' | 'EXCHANGE' | 'CREDIT' | 'GESTURE';
-const RESOLUTION_OPTIONS: { value: ResolutionType; label: string }[] = [
-  { value: 'REFUND', label: 'Remboursement' },
-  { value: 'EXCHANGE', label: 'Échange produit' },
-  { value: 'CREDIT', label: 'Avoir sur compte' },
-  { value: 'GESTURE', label: 'Geste commercial' },
-];
 
 export default function ClaimDetailPage() {
   const navigate = useNavigate();
-  const params = useParams();
-  void params.id;
+  const params = useParams<{ id: string }>();
+  const claimId = params.id;
   const user = useAuthStore((s) => s.user);
   const canResolve = user ? hasPermission(user.role, 'claims.resolve') : false;
 
-  const claim = MOCK;
-  const sc = STATUS_COLORS[claim.status];
+  const [claim, setClaim] = useState<ClaimDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newComment, setNewComment] = useState('');
   const [showResolve, setShowResolve] = useState(false);
-  const [resolutionType, setResolutionType] = useState<ResolutionType>('EXCHANGE');
+  const [resolutionAction, setResolutionAction] = useState<ResolveAction>('REFUND');
   const [resolutionNote, setResolutionNote] = useState('');
+  const [refundAmount, setRefundAmount] = useState('');
+  const [resolving, setResolving] = useState(false);
+
+  const resolveOptions = claim ? RESOLUTION_OPTIONS[claim.type] : [];
+
+  const openResolve = () => {
+    if (!claim) return;
+    setResolutionAction(resolveOptions[0]?.value ?? 'REFUND');
+    setResolutionNote('');
+    setRefundAmount('');
+    setShowResolve(true);
+  };
+
+  const handleResolve = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!claim) return;
+    setResolving(true);
+    try {
+      const amount = resolutionAction === 'REFUND' && refundAmount.trim()
+        ? parseInt(refundAmount, 10)
+        : undefined;
+      const updated = await claimsApiService.resolveClaim(claim.id, {
+        action: resolutionAction,
+        note: resolutionNote,
+        amount,
+      });
+      setClaim(updated);
+      setShowResolve(false);
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de la résolution');
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!claimId) return;
+    setLoading(true);
+    setError(null);
+    claimsApiService
+      .getClaim(claimId)
+      .then((data) => setClaim(data))
+      .catch((err) => setError(err.message || 'Erreur lors du chargement de la réclamation'))
+      .finally(() => setLoading(false));
+  }, [claimId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center text-gray-500">
+        <Loader2 size={32} className="animate-spin mb-3" />
+        <p className="text-sm">Chargement de la réclamation…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <button onClick={() => navigate('/admin/claims')} className="p-2 rounded-lg hover:bg-gray-100 mb-4">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+          <AlertCircle size={20} />
+          <span className="text-sm">{error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!claim) {
+    return (
+      <div className="p-6">
+        <button onClick={() => navigate('/admin/claims')} className="p-2 rounded-lg hover:bg-gray-100 mb-4">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-600">
+          Réclamation introuvable
+        </div>
+      </div>
+    );
+  }
+
+  const sc = STATUS_COLORS[claim.status];
+  const orderLink = claim.orderId
+    ? `/admin/orders/${claim.orderId}`
+    : claim.preorderId
+    ? `/admin/preorders/${claim.preorderId}`
+    : undefined;
+  const orderText = claim.orderNumber || claim.preorderNumber || '-';
 
   return (
     <div>
@@ -85,19 +194,12 @@ export default function ClaimDetailPage() {
           <p className="text-sm text-gray-500 mt-0.5">Ouverte le {formatDateTime(claim.createdAt)}</p>
         </div>
         {canResolve && claim.status !== 'CLOSED' && claim.status !== 'RESOLVED' && (
-          <div className="flex items-center gap-2">
-            {!claim.assignedTo && (
-              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100">
-                <UserCheck size={16} /> S'assigner
-              </button>
-            )}
-            <button
-              onClick={() => setShowResolve(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00]"
-            >
-              <CheckCircle size={16} /> Résoudre
-            </button>
-          </div>
+          <button
+            onClick={openResolve}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00]"
+          >
+            <CheckCircle size={16} /> Résoudre
+          </button>
         )}
       </div>
 
@@ -106,17 +208,18 @@ export default function ClaimDetailPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Résoudre la réclamation</h3>
-            <div className="space-y-4">
+            <form onSubmit={handleResolve} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Type de résolution</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Action</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {RESOLUTION_OPTIONS.map((opt) => (
+                  {resolveOptions.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => setResolutionType(opt.value)}
+                      type="button"
+                      onClick={() => setResolutionAction(opt.value)}
                       className={cn(
                         'px-3 py-2 rounded-lg border text-sm font-medium transition-colors text-center',
-                        resolutionType === opt.value
+                        resolutionAction === opt.value
                           ? 'border-[#FF8C00] bg-orange-50 text-[#FF8C00]'
                           : 'border-gray-200 text-gray-700 hover:bg-gray-50',
                       )}
@@ -126,6 +229,20 @@ export default function ClaimDetailPage() {
                   ))}
                 </div>
               </div>
+              {resolutionAction === 'REFUND' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Montant à rembourser (FCFA)</label>
+                  <input
+                    type="number"
+                    value={refundAmount}
+                    onChange={(e) => setRefundAmount(e.target.value)}
+                    placeholder="Laisser vide pour remboursement total"
+                    min={0}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Laisser vide pour rembourser le montant total payé.</p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Note de résolution</label>
                 <textarea
@@ -136,18 +253,24 @@ export default function ClaimDetailPage() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none"
                 />
               </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-5">
-              <button onClick={() => setShowResolve(false)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                Annuler
-              </button>
-              <button
-                disabled={!resolutionNote.trim()}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00] disabled:opacity-50"
-              >
-                Confirmer la résolution
-              </button>
-            </div>
+              <div className="flex justify-end gap-3 mt-5">
+                <button type="button" onClick={() => setShowResolve(false)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    resolving ||
+                    ((resolutionAction === 'REJECT' || resolutionAction === 'CLOSE' || resolutionAction === 'GESTURE' || resolutionAction === 'EXCHANGE') &&
+                      !resolutionNote.trim())
+                  }
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00] disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  {resolving && <Loader2 size={16} className="animate-spin" />}
+                  Confirmer
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -165,10 +288,16 @@ export default function ClaimDetailPage() {
               <div className="mt-4">
                 <p className="text-xs font-medium text-gray-500 mb-2">Photos jointes ({claim.photoUrls.length})</p>
                 <div className="flex gap-3">
-                  {claim.photoUrls.map((_, i) => (
-                    <div key={i} className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  {claim.photoUrls.map((url, i) => (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden"
+                    >
                       <Image size={20} className="text-gray-300" />
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -228,13 +357,19 @@ export default function ClaimDetailPage() {
           {/* Order link */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
             <h3 className="text-base font-semibold text-gray-900 mb-3">Commande liée</h3>
-            <button
-              onClick={() => navigate(`/admin/orders/${claim.orderId}`)}
-              className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-[#FF8C00] hover:bg-orange-50/30 transition-colors"
-            >
-              <p className="text-sm font-semibold text-[#FF8C00]">{claim.orderNumber}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cliquez pour voir le détail</p>
-            </button>
+            {orderLink ? (
+              <button
+                onClick={() => navigate(orderLink)}
+                className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-[#FF8C00] hover:bg-orange-50/30 transition-colors"
+              >
+                <p className="text-sm font-semibold text-[#FF8C00]">{orderText}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Cliquez pour voir le détail</p>
+              </button>
+            ) : (
+              <div className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50">
+                <p className="text-sm font-semibold text-gray-500">{orderText}</p>
+              </div>
+            )}
           </div>
 
           {/* Client */}
@@ -242,8 +377,8 @@ export default function ClaimDetailPage() {
             <h3 className="text-base font-semibold text-gray-900 mb-3">Client</h3>
             <div className="space-y-2 text-sm mb-4">
               <p className="font-medium text-gray-900">{claim.customerName}</p>
-              <p className="text-gray-500">{claim.customerPhone}</p>
-              <p className="text-gray-500">{claim.customerEmail}</p>
+              <p className="text-gray-500">{claim.customerPhone || '—'}</p>
+              <p className="text-gray-500">{claim.customerEmail || '—'}</p>
             </div>
             <div className="flex items-center gap-2">
               <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Appeler"><Phone size={14} /></button>
@@ -253,27 +388,16 @@ export default function ClaimDetailPage() {
             </div>
           </div>
 
-          {/* Assignment */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Assignation</h3>
-            {claim.assignedToName ? (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
-                  {claim.assignedToName.split(' ').map((w) => w[0]).join('')}
-                </div>
-                <span className="text-sm font-medium text-gray-900">{claim.assignedToName}</span>
-              </div>
-            ) : (
-              <div className="text-center py-3">
-                <p className="text-sm text-red-500 font-medium mb-2">Non assignée</p>
-                {canResolve && (
-                  <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00]">
-                    <UserCheck size={16} /> S'assigner
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Resolution */}
+          {claim.resolution && (
+            <div className="bg-white rounded-xl border border-gray-100 p-5">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">Résolution</h3>
+              <p className="text-sm text-gray-700">{claim.resolution}</p>
+              {claim.resolvedAt && (
+                <p className="text-xs text-gray-400 mt-1">{formatDateTime(claim.resolvedAt)}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

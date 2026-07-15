@@ -1,51 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, Mail, Send, Plus, ShoppingCart, AlertTriangle, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Mail, Send, Plus, ShoppingCart, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate, formatDateTime } from '@/core/utils/formatters';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/core/types';
 import type { OrderStatus } from '@/core/types';
-
-const MOCK = {
-  id: '1',
-  firstName: 'Kouassi',
-  lastName: 'Jean',
-  phone: '+225 07 12 34 56',
-  email: 'kouassi@email.com',
-  clientType: 'PARTICULIER' as 'PARTICULIER' | 'PROFESSIONNEL',
-  companyName: undefined as string | undefined,
-  totalOrders: 12,
-  totalRevenue: 8500000,
-  averageBasket: 708333,
-  lastOrderDate: '2026-03-05',
-  createdAt: '2025-06-15',
-  addresses: [
-    { id: 'a1', label: 'Domicile', fullAddress: '12 Rue des Jardins, Cocody Angré, Abidjan', isDefault: true },
-    { id: 'a2', label: 'Chantier Riviera', fullAddress: 'Lot 45, Riviera Faya, Abidjan', isDefault: false },
-  ],
-  recentOrders: [
-    { id: 'o1', orderNumber: 'CMD-2026-00567', totalAmount: 1049300, status: 'PENDING_VALIDATION' as OrderStatus, createdAt: '2026-03-05T08:30:00Z' },
-    { id: 'o2', orderNumber: 'CMD-2026-00510', totalAmount: 720000, status: 'DELIVERED' as OrderStatus, createdAt: '2026-02-20T10:00:00Z' },
-    { id: 'o3', orderNumber: 'CMD-2026-00480', totalAmount: 1550000, status: 'DELIVERED' as OrderStatus, createdAt: '2026-02-05T14:00:00Z' },
-    { id: 'o4', orderNumber: 'CMD-2026-00420', totalAmount: 350000, status: 'DELIVERED' as OrderStatus, createdAt: '2026-01-18T09:00:00Z' },
-    { id: 'o5', orderNumber: 'CMD-2025-01250', totalAmount: 2200000, status: 'DELIVERED' as OrderStatus, createdAt: '2025-12-10T11:00:00Z' },
-  ],
-  claims: [
-    { id: 'c1', number: 'REC-2026-0020', type: 'Retard livraison', status: 'Résolue', createdAt: '2026-02-22' },
-  ],
-  notes: [
-    { id: 'n1', content: 'Client fidèle, toujours ponctuel dans ses paiements.', author: 'Konan Marc', date: '2026-01-20T10:00:00Z' },
-    { id: 'n2', content: 'Préfère être contacté par WhatsApp.', author: 'Marie K.', date: '2026-02-15T14:00:00Z' },
-  ],
-};
+import { customersApiService, CustomerDetail } from './customers-api.service';
 
 export default function CustomerDetailPage() {
   const navigate = useNavigate();
   const params = useParams();
-  void params.id;
+  const customerId = params.id;
   const [newNote, setNewNote] = useState('');
+  const [customer, setCustomer] = useState<CustomerDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const customer = MOCK;
+  useEffect(() => {
+    if (!customerId) return;
+    fetchCustomer();
+  }, [customerId]);
+
+  const fetchCustomer = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await customersApiService.getCustomerDetail(customerId!);
+      setCustomer(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement du client');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!customerId) {
+    return <div className="p-6 text-red-600">Identifiant client manquant</div>;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="animate-spin text-[#FF8C00]" size={24} />
+      </div>
+    );
+  }
+
+  if (error || !customer) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800 text-sm">{error || 'Client introuvable'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -120,25 +129,28 @@ export default function CustomerDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {customer.recentOrders.map((o) => (
-                  <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="px-3 py-2.5">
-                      <button onClick={() => navigate(`/admin/orders/${o.id}`)} className="text-sm font-semibold text-[#FF8C00] hover:underline">
-                        {o.orderNumber}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2.5 text-sm text-gray-600">{formatDateTime(o.createdAt)}</td>
-                    <td className="px-3 py-2.5 text-right text-sm font-medium text-gray-900">{formatCFA(o.totalAmount)}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                        style={{ backgroundColor: `${ORDER_STATUS_COLORS[o.status]}18`, color: ORDER_STATUS_COLORS[o.status] }}
-                      >
-                        {ORDER_STATUS_LABELS[o.status]}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {customer.recentOrders.map((o) => {
+                  const orderStatus = o.status as OrderStatus;
+                  return (
+                    <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                      <td className="px-3 py-2.5">
+                        <button onClick={() => navigate(`/admin/orders/${o.id}`)} className="text-sm font-semibold text-[#FF8C00] hover:underline">
+                          {o.orderNumber}
+                        </button>
+                      </td>
+                      <td className="px-3 py-2.5 text-sm text-gray-600">{formatDateTime(o.createdAt)}</td>
+                      <td className="px-3 py-2.5 text-right text-sm font-medium text-gray-900">{formatCFA(o.totalAmount)}</td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                          style={{ backgroundColor: `${ORDER_STATUS_COLORS[orderStatus]}18`, color: ORDER_STATUS_COLORS[orderStatus] }}
+                        >
+                          {ORDER_STATUS_LABELS[orderStatus]}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -218,20 +230,38 @@ export default function CustomerDetailPage() {
             </div>
           </div>
 
-          {/* Addresses */}
+          {/* Projects */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
             <div className="flex items-center gap-2 mb-3">
               <MapPin size={16} className="text-[#FF8C00]" />
-              <h3 className="text-base font-semibold text-gray-900">Adresses</h3>
+              <h3 className="text-base font-semibold text-gray-900">Projets / Chantiers</h3>
             </div>
             <div className="space-y-3">
-              {customer.addresses.map((addr) => (
-                <div key={addr.id} className={cn('p-3 rounded-lg border', addr.isDefault ? 'border-[#FF8C00] bg-orange-50/30' : 'border-gray-200')}>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900">{addr.label}</p>
-                    {addr.isDefault && <span className="text-[10px] font-bold text-[#FF8C00] bg-orange-100 px-1.5 py-0.5 rounded">Par défaut</span>}
+              {customer.projects.map((project) => (
+                <div key={project.id} className={cn('p-3 rounded-lg border', project.isDefault ? 'border-[#FF8C00] bg-orange-50/30' : 'border-gray-200')}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900">{project.name}</p>
+                    {project.isDefault && <span className="text-[10px] font-bold text-[#FF8C00] bg-orange-100 px-1.5 py-0.5 rounded">Par défaut</span>}
+                    <span className={cn(
+                      'text-[10px] font-bold px-1.5 py-0.5 rounded',
+                      project.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600',
+                    )}>
+                      {project.status}
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{addr.fullAddress}</p>
+                  <p className="text-xs text-gray-600 font-medium">{project.label}</p>
+                  <p className="text-xs text-gray-500 mt-1">{project.fullAddress}{project.commune ? `, ${project.commune}` : ''}</p>
+                  {(project.landmarks || project.driverInstructions) && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      {project.landmarks} {project.landmarks && project.driverInstructions && '•'} {project.driverInstructions}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-gray-500">
+                    <div><span className="text-gray-400">Contact :</span> {project.contactName} {project.contactPhone && `(${project.contactPhone})`}</div>
+                    {project.budget && <div><span className="text-gray-400">Budget :</span> {formatCFA(project.budget)}</div>}
+                    {project.startDate && <div><span className="text-gray-400">Début :</span> {formatDate(project.startDate)}</div>}
+                    {project.endDate && <div><span className="text-gray-400">Fin :</span> {formatDate(project.endDate)}</div>}
+                  </div>
                 </div>
               ))}
             </div>

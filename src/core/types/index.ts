@@ -266,7 +266,15 @@ export interface Customer {
 }
 
 // ─── Réclamations ───────────────────────────────────────────────
-export type ClaimType = 'DEFECTIVE_PRODUCT' | 'WRONG_PRODUCT' | 'DAMAGED_IN_TRANSIT' | 'MISSING_ITEMS' | 'DELIVERY_ISSUE' | 'OTHER';
+export type ClaimType =
+  | 'DEFECTIVE_PRODUCT'
+  | 'WRONG_PRODUCT'
+  | 'DAMAGED_IN_TRANSIT'
+  | 'MISSING_ITEMS'
+  | 'DELIVERY_ISSUE'
+  | 'PREORDER_REFUND'
+  | 'CANCELLATION_REQUEST'
+  | 'OTHER';
 
 export const CLAIM_TYPE_LABELS: Record<ClaimType, string> = {
   DEFECTIVE_PRODUCT: 'Produit défectueux',
@@ -274,6 +282,8 @@ export const CLAIM_TYPE_LABELS: Record<ClaimType, string> = {
   DAMAGED_IN_TRANSIT: 'Endommagé au transport',
   MISSING_ITEMS: 'Articles manquants',
   DELIVERY_ISSUE: 'Problème de livraison',
+  PREORDER_REFUND: 'Remboursement pré-commande',
+  CANCELLATION_REQUEST: 'Demande d\'annulation',
   OTHER: 'Autre',
 };
 

@@ -1,23 +1,10 @@
-import { useState } from 'react';
-import { Search, Download, CheckCircle, XCircle, Clock, CreditCard, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Download, CheckCircle, XCircle, Clock, CreditCard, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDateTime } from '@/core/utils/formatters';
+import { paymentsApiService, PaymentStatus, OverdueInstallment, Payment } from './payments-api.service';
 
-type PaymentStatus = 'CONFIRMED' | 'PENDING' | 'FAILED' | 'REFUNDED';
 type Tab = 'all' | 'orders' | 'preorders' | 'overdue';
-
-interface Payment {
-  id: string;
-  reference: string;
-  orderNumber: string;
-  customerName: string;
-  amount: number;
-  method: string;
-  status: PaymentStatus;
-  type: 'ORDER' | 'PREORDER_INSTALLMENT';
-  installmentLabel?: string;
-  createdAt: string;
-}
 
 const STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   CONFIRMED: { label: 'Confirmé', color: 'text-green-700', bg: 'bg-green-50', icon: <CheckCircle size={14} /> },
@@ -25,23 +12,6 @@ const STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string; bg: s
   FAILED: { label: 'Échoué', color: 'text-red-700', bg: 'bg-red-50', icon: <XCircle size={14} /> },
   REFUNDED: { label: 'Remboursé', color: 'text-gray-700', bg: 'bg-gray-100', icon: <CreditCard size={14} /> },
 };
-
-const MOCK_PAYMENTS: Payment[] = [
-  { id: '1', reference: 'PAY-2026-0088', orderNumber: 'CMD-2026-00567', customerName: 'Kouassi Jean', amount: 515000, method: 'Orange Money', status: 'CONFIRMED', type: 'ORDER', createdAt: '2026-03-11T14:30:00Z' },
-  { id: '2', reference: 'PAY-2026-0087', orderNumber: 'CMD-2026-00564', customerName: 'Traoré Fatoumata', amount: 225000, method: 'Wave', status: 'CONFIRMED', type: 'ORDER', createdAt: '2026-03-11T10:15:00Z' },
-  { id: '3', reference: 'PAY-2026-0086', orderNumber: 'PRE-2026-0012', customerName: 'Bamba Seydou', amount: 312500, method: 'Virement SGBCI', status: 'CONFIRMED', type: 'PREORDER_INSTALLMENT', installmentLabel: 'Échéance 2/4', createdAt: '2026-03-10T08:00:00Z' },
-  { id: '4', reference: 'PAY-2026-0085', orderNumber: 'CMD-2026-00560', customerName: 'Koffi Emmanuel', amount: 190000, method: 'MTN Money', status: 'PENDING', type: 'ORDER', createdAt: '2026-03-10T16:00:00Z' },
-  { id: '5', reference: 'PAY-2026-0084', orderNumber: 'PRE-2026-0008', customerName: 'Société BTP Plus', amount: 875000, method: 'Orange Money', status: 'FAILED', type: 'PREORDER_INSTALLMENT', installmentLabel: 'Échéance 3/6', createdAt: '2026-03-09T11:00:00Z' },
-  { id: '6', reference: 'PAY-2026-0083', orderNumber: 'CMD-2026-00555', customerName: 'Diallo Mamadou', amount: 670000, method: 'Carte Visa', status: 'CONFIRMED', type: 'ORDER', createdAt: '2026-03-08T09:30:00Z' },
-  { id: '7', reference: 'PAY-2026-0082', orderNumber: 'PRE-2026-0005', customerName: 'Achi Construction', amount: 1250000, method: 'Virement BICICI', status: 'CONFIRMED', type: 'PREORDER_INSTALLMENT', installmentLabel: 'Échéance 4/6', createdAt: '2026-03-07T14:00:00Z' },
-  { id: '8', reference: 'PAY-2026-0081', orderNumber: 'CMD-2026-00548', customerName: 'Koné Adama', amount: 420000, method: 'Wave', status: 'REFUNDED', type: 'ORDER', createdAt: '2026-03-06T10:00:00Z' },
-];
-
-const OVERDUE_INSTALLMENTS = [
-  { id: 'ov1', preorderNumber: 'PRE-2026-0010', customerName: 'Yao Pierre', amount: 437500, dueDate: '2026-03-05', daysPastDue: 6, installmentLabel: 'Échéance 3/4', phone: '+225 05 44 33 22' },
-  { id: 'ov2', preorderNumber: 'PRE-2026-0008', customerName: 'Société BTP Plus', amount: 875000, dueDate: '2026-03-03', daysPastDue: 8, installmentLabel: 'Échéance 3/6', phone: '+225 07 88 99 00' },
-  { id: 'ov3', preorderNumber: 'PRE-2026-0006', customerName: 'Diabaté Moussa', amount: 250000, dueDate: '2026-03-01', daysPastDue: 10, installmentLabel: 'Échéance 2/3', phone: '+225 01 22 33 44' },
-];
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'all', label: 'Tous les paiements' },
@@ -53,18 +23,58 @@ const TABS: { key: Tab; label: string }[] = [
 export default function PaymentsPage() {
   const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [overdueInstallments, setOverdueInstallments] = useState<OverdueInstallment[]>([]);
+  const [totalConfirmed, setTotalConfirmed] = useState(0);
+  const [totalPending, setTotalPending] = useState(0);
+  const [totalOverdue, setTotalOverdue] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = MOCK_PAYMENTS.filter((p) => {
-    if (tab === 'orders') return p.type === 'ORDER';
-    if (tab === 'preorders') return p.type === 'PREORDER_INSTALLMENT';
-    return true;
-  }).filter((p) =>
-    search === '' || p.reference.toLowerCase().includes(search.toLowerCase()) || p.customerName.toLowerCase().includes(search.toLowerCase()) || p.orderNumber.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    if (tab === 'overdue') {
+      fetchOverdueInstallments();
+    } else {
+      fetchPayments();
+    }
+  }, [tab, search]);
 
-  const totalConfirmed = MOCK_PAYMENTS.filter((p) => p.status === 'CONFIRMED').reduce((s, p) => s + p.amount, 0);
-  const totalPending = MOCK_PAYMENTS.filter((p) => p.status === 'PENDING').reduce((s, p) => s + p.amount, 0);
-  const totalOverdue = OVERDUE_INSTALLMENTS.reduce((s, o) => s + o.amount, 0);
+  const fetchPayments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const type = tab === 'orders' ? 'ORDER' : tab === 'preorders' ? 'PREORDER_INSTALLMENT' : undefined;
+      const response = await paymentsApiService.getAllPayments({
+        type,
+        search: search || undefined,
+        pageSize: 100,
+      });
+      setPayments(response.data);
+      setTotalConfirmed(response.statistics.confirmedTotal);
+      setTotalPending(response.statistics.pendingTotal);
+      setTotalOverdue(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des paiements');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOverdueInstallments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await paymentsApiService.getOverdueInstallments();
+      setOverdueInstallments(response.overdueInstallments);
+      setTotalOverdue(response.totalOverdue);
+      setTotalConfirmed(0);
+      setTotalPending(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des échéances');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -85,13 +95,13 @@ export default function PaymentsPage() {
           <p className="text-2xl font-bold text-green-600 mt-1">{formatCFA(totalConfirmed)}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">En attente de confirmation</p>
+          <p className="text-sm text-gray-500">Reste à payer (échéances)</p>
           <p className="text-2xl font-bold text-yellow-600 mt-1">{formatCFA(totalPending)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 border-l-4 border-l-red-500">
+        <div className="bg-white rounded-xl border border-gray-100 border-l-4 border-l-red-500">
           <p className="text-sm text-gray-500">Échéances impayées</p>
           <p className="text-2xl font-bold text-red-600 mt-1">{formatCFA(totalOverdue)}</p>
-          <p className="text-xs text-red-500 mt-1">{OVERDUE_INSTALLMENTS.length} échéances en retard</p>
+          <p className="text-xs text-red-500 mt-1">{overdueInstallments.length} échéances en retard</p>
         </div>
       </div>
 
@@ -107,14 +117,26 @@ export default function PaymentsPage() {
             )}
           >
             {t.label}
-            {t.key === 'overdue' && OVERDUE_INSTALLMENTS.length > 0 && (
-              <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{OVERDUE_INSTALLMENTS.length}</span>
+            {t.key === 'overdue' && overdueInstallments.length > 0 && (
+              <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{overdueInstallments.length}</span>
             )}
           </button>
         ))}
       </div>
 
-      {tab === 'overdue' ? (
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="animate-spin text-[#FF8C00]" size={24} />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && tab === 'overdue' ? (
         /* Overdue installments */
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-100 flex items-center gap-2">
@@ -134,13 +156,13 @@ export default function PaymentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {OVERDUE_INSTALLMENTS.map((o) => (
+              {overdueInstallments.map((o) => (
                 <tr key={o.id} className="hover:bg-red-50/30">
                   <td className="px-4 py-3 font-medium text-gray-900">{o.preorderNumber}</td>
                   <td className="px-4 py-3 text-gray-600">{o.customerName}</td>
                   <td className="px-4 py-3 text-gray-600">{o.installmentLabel}</td>
                   <td className="px-4 py-3 text-right font-semibold text-red-600">{formatCFA(o.amount)}</td>
-                  <td className="px-4 py-3 text-gray-500">{o.dueDate}</td>
+                  <td className="px-4 py-3 text-gray-500">{new Date(o.dueDate).toLocaleDateString('fr-FR')}</td>
                   <td className="px-4 py-3">
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
                       {o.daysPastDue}j de retard
@@ -151,6 +173,13 @@ export default function PaymentsPage() {
                   </td>
                 </tr>
               ))}
+              {overdueInstallments.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    Aucune échéance en retard
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -183,7 +212,7 @@ export default function PaymentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filtered.map((p) => {
+                {payments.map((p) => {
                   const cfg = STATUS_CONFIG[p.status];
                   return (
                     <tr key={p.id} className="hover:bg-gray-50/50">

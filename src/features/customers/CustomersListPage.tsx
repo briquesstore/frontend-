@@ -1,47 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, Download } from 'lucide-react';
+import { Search, Eye, Download, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate } from '@/core/utils/formatters';
-
-interface CustomerRow {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email?: string;
-  clientType: 'PARTICULIER' | 'PROFESSIONNEL';
-  companyName?: string;
-  totalOrders: number;
-  totalRevenue: number;
-  lastOrderDate?: string;
-  createdAt: string;
-}
-
-const MOCK: CustomerRow[] = [
-  { id: '1', firstName: 'Kouassi', lastName: 'Jean', phone: '+225 07 12 34 56', email: 'kouassi@email.com', clientType: 'PARTICULIER', totalOrders: 12, totalRevenue: 8500000, lastOrderDate: '2026-03-05', createdAt: '2025-06-15' },
-  { id: '2', firstName: 'Société', lastName: 'ABC SARL', phone: '+225 05 98 76 54', email: 'contact@abc-sarl.ci', clientType: 'PROFESSIONNEL', companyName: 'ABC SARL', totalOrders: 45, totalRevenue: 125000000, lastOrderDate: '2026-03-04', createdAt: '2025-01-10' },
-  { id: '3', firstName: 'Diallo', lastName: 'Mamadou', phone: '+225 01 23 45 67', clientType: 'PARTICULIER', totalOrders: 3, totalRevenue: 1250000, lastOrderDate: '2026-03-01', createdAt: '2025-11-20' },
-  { id: '4', firstName: 'Construction', lastName: 'Moderne SA', phone: '+225 27 22 11 33', email: 'cmd@cm-sa.ci', clientType: 'PROFESSIONNEL', companyName: 'Construction Moderne SA', totalOrders: 78, totalRevenue: 350000000, lastOrderDate: '2026-03-02', createdAt: '2024-08-05' },
-  { id: '5', firstName: 'Traoré', lastName: 'Fatoumata', phone: '+225 07 65 43 21', email: 'fatou.t@email.com', clientType: 'PARTICULIER', totalOrders: 7, totalRevenue: 4200000, lastOrderDate: '2026-02-28', createdAt: '2025-09-01' },
-  { id: '6', firstName: 'Yao', lastName: 'Aya', phone: '+225 05 11 22 33', clientType: 'PARTICULIER', totalOrders: 2, totalRevenue: 980000, lastOrderDate: '2026-03-05', createdAt: '2026-01-15' },
-  { id: '7', firstName: 'BTP', lastName: 'Plus SARL', phone: '+225 27 22 44 55', email: 'info@btpplus.ci', clientType: 'PROFESSIONNEL', companyName: 'BTP Plus SARL', totalOrders: 22, totalRevenue: 85000000, lastOrderDate: '2026-03-03', createdAt: '2025-03-20' },
-];
+import { customersApiService, Customer } from './customers-api.service';
 
 export default function CustomersListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'PARTICULIER' | 'PROFESSIONNEL' | ''>('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = MOCK.filter((c) => {
-    if (typeFilter && c.clientType !== typeFilter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      const name = `${c.firstName} ${c.lastName}`.toLowerCase();
-      return name.includes(q) || c.phone.includes(q) || c.email?.toLowerCase().includes(q);
+  useEffect(() => {
+    fetchCustomers();
+  }, [search, typeFilter]);
+
+  const fetchCustomers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await customersApiService.getCustomers({
+        search: search || undefined,
+        clientType: typeFilter || undefined,
+        pageSize: 100,
+      });
+      setCustomers(response.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des clients');
+    } finally {
+      setLoading(false);
     }
-    return true;
-  });
+  };
+
+  const filtered = customers;
 
   return (
     <div>
@@ -77,22 +70,35 @@ export default function CustomersListPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Client</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Téléphone</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Email</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Commandes</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">CA Total</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Dernière cmd</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="animate-spin text-[#FF8C00]" size={24} />
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Client</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Téléphone</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Email</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Commandes</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">CA Total</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Dernière cmd</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
               {filtered.map((c) => (
                 <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                   <td className="px-4 py-3">
@@ -126,6 +132,7 @@ export default function CustomersListPage() {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 }
