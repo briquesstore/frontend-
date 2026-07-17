@@ -69,6 +69,10 @@ export interface ClaimDetail {
   updatedAt: string;
   timeline: { id: string; action: string; author: string; date: string }[];
   internalComments: { id: string; content: string; author: string; date: string }[];
+  // Informations financières pour le remboursement
+  totalPaid: number;
+  totalRefunded: number;
+  maxRefundable: number;
 }
 
 interface BackendClaimListItem {
@@ -104,6 +108,10 @@ interface BackendClaimDetail {
   order?: ClaimOrder | null;
   preorder?: ClaimPreorder | null;
   comments?: ClaimComment[];
+  // Informations financières
+  totalPaid?: number;
+  totalRefunded?: number;
+  maxRefundable?: number;
 }
 
 export interface ClaimsQuery {
@@ -222,6 +230,10 @@ function mapDetail(item: BackendClaimDetail): ClaimDetail {
     updatedAt: item.updatedAt,
     timeline,
     internalComments,
+    // Informations financières
+    totalPaid: item.totalPaid ?? 0,
+    totalRefunded: item.totalRefunded ?? 0,
+    maxRefundable: item.maxRefundable ?? 0,
   };
 }
 

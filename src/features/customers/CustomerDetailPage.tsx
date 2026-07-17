@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, Mail, Send, Plus, ShoppingCart, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, ShoppingCart, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate, formatDateTime } from '@/core/utils/formatters';
+import ContactActions from '@/components/ContactActions';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/core/types';
 import type { OrderStatus } from '@/core/types';
 import { customersApiService, CustomerDetail } from './customers-api.service';
@@ -82,12 +83,13 @@ export default function CustomerDetailPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Appeler"><Phone size={18} /></button>
-          <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="WhatsApp"><MessageCircle size={18} /></button>
-          <button className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="SMS"><Send size={18} /></button>
-          <button className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100" title="Email"><Mail size={18} /></button>
-        </div>
+        <ContactActions
+          phone={customer.phone}
+          email={customer.email}
+          size={18}
+          defaultMessage={`Bonjour ${customer.firstName} ${customer.lastName}, je vous contacte de la part de BRIQUES.STORE.`}
+          emailSubject="BRIQUES.STORE - Suite à votre demande"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

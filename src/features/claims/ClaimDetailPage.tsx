@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, Phone, MessageCircle, Mail, Send,
-  CheckCircle, Plus, Image, Loader2, AlertCircle,
+  ArrowLeft, CheckCircle, Plus, Image, Loader2, AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
@@ -11,6 +10,7 @@ import { formatDateTime } from '@/core/utils/formatters';
 import { CLAIM_TYPE_LABELS, CLAIM_STATUS_LABELS } from '@/core/types';
 import type { ClaimStatus, ClaimType } from '@/core/types';
 import { claimsApiService, type ClaimDetail, type ResolveAction } from './services/claims-api.service';
+import ContactActions from '@/components/ContactActions';
 
 const STATUS_COLORS: Record<ClaimStatus, { bg: string; text: string }> = {
   OPEN: { bg: 'bg-red-50', text: 'text-red-700' },
@@ -235,12 +235,39 @@ export default function ClaimDetailPage() {
                   <input
                     type="number"
                     value={refundAmount}
-                    onChange={(e) => setRefundAmount(e.target.value)}
-                    placeholder="Laisser vide pour remboursement total"
-                    min={0}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Empêcher de dépasser le max remboursable
+                      if (val && parseInt(val, 10) > claim.maxRefundable) {
+                        setRefundAmount(claim.maxRefundable.toString());
+                      } else {
+                        setRefundAmount(val);
+                      }
+                    }}
+                    placeholder={`Max: ${claim.maxRefundable.toLocaleString('fr-FR')} FCFA`}
+                    min={1}
+                    max={claim.maxRefundable}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Laisser vide pour rembourser le montant total payé.</p>
+                  <div className="mt-2 p-2 bg-gray-50 rounded-lg text-xs space-y-1">
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Total payé :</span>
+                      <span className="font-semibold text-gray-700">{claim.totalPaid.toLocaleString('fr-FR')} FCFA</span>
+                    </p>
+                    {claim.totalRefunded > 0 && (
+                      <p className="flex justify-between">
+                        <span className="text-gray-500">Déjà remboursé/en cours :</span>
+                        <span className="font-semibold text-orange-600">-{claim.totalRefunded.toLocaleString('fr-FR')} FCFA</span>
+                      </p>
+                    )}
+                    <p className="flex justify-between border-t border-gray-200 pt-1">
+                      <span className="text-gray-700 font-medium">Maximum remboursable :</span>
+                      <span className="font-bold text-green-600">{claim.maxRefundable.toLocaleString('fr-FR')} FCFA</span>
+                    </p>
+                  </div>
+                  {claim.maxRefundable === 0 && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">⚠️ Aucun montant remboursable disponible.</p>
+                  )}
                 </div>
               )}
               <div>
@@ -262,7 +289,8 @@ export default function ClaimDetailPage() {
                   disabled={
                     resolving ||
                     ((resolutionAction === 'REJECT' || resolutionAction === 'CLOSE' || resolutionAction === 'GESTURE' || resolutionAction === 'EXCHANGE') &&
-                      !resolutionNote.trim())
+                      !resolutionNote.trim()) ||
+                    (resolutionAction === 'REFUND' && claim.maxRefundable === 0)
                   }
                   className="px-4 py-2 text-sm font-medium text-white bg-[#FF8C00] rounded-lg hover:bg-[#E67E00] disabled:opacity-50 inline-flex items-center gap-2"
                 >
@@ -380,12 +408,13 @@ export default function ClaimDetailPage() {
               <p className="text-gray-500">{claim.customerPhone || '—'}</p>
               <p className="text-gray-500">{claim.customerEmail || '—'}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Appeler"><Phone size={14} /></button>
-              <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="WhatsApp"><MessageCircle size={14} /></button>
-              <button className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="SMS"><Send size={14} /></button>
-              <button className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100" title="Email"><Mail size={14} /></button>
-            </div>
+            <ContactActions
+              phone={claim.customerPhone}
+              email={claim.customerEmail}
+              size={14}
+              defaultMessage={`Bonjour ${claim.customerName}, je vous contacte suite à votre réclamation ${claim.number} sur BRIQUES.STORE.`}
+              emailSubject={`BRIQUES.STORE - Réclamation ${claim.number}`}
+            />
           </div>
 
           {/* Resolution */}

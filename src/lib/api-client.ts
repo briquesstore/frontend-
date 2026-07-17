@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000
 
 class ApiClient {
   private baseURL: string;
+  private refreshPromise: Promise<void> | null = null;
 
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -24,39 +25,57 @@ class ApiClient {
     console.warn('clearToken is deprecated, tokens are managed by auth store');
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {},
-  ): Promise<{ data: T }> {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = this.getToken();
-    
-    // Fonction utilitaire pour lire le cookie CSRF
-    const getCookie = (name: string): string | null => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) {
-        return parts.pop()?.split(';').shift() || null;
-      }
-      return null;
-    };
+  // Fonction utilitaire pour lire le cookie CSRF
+  private getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() || null;
+    }
+    return null;
+  }
 
-    const headers: HeadersInit = {
+  private buildHeaders(options: RequestInit): Headers {
+    const token = this.getToken();
+    const headers = new Headers({
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
       'Cache-Control': 'no-cache',
       'Pragma': 'no-cache',
-      ...options.headers,
-    };
+    });
+
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    // Ajouter les headers fournis par l'appelant
+    if (options.headers) {
+      const providedHeaders = options.headers as Record<string, string>;
+      Object.entries(providedHeaders).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          headers.set(key, value);
+        }
+      });
+    }
 
     // Ajouter le header CSRF pour les mutations
     const method = options.method || 'GET';
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
-      const csrfToken = getCookie('bo_csrf_token');
+      const csrfToken = this.getCookie('bo_csrf_token');
       if (csrfToken) {
-        (headers as Record<string, string>)['X-CSRF-Token'] = csrfToken;
+        headers.set('X-CSRF-Token', csrfToken);
       }
     }
+
+    return headers;
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    isRetry = false,
+  ): Promise<{ data: T }> {
+    const url = `${this.baseURL}${endpoint}`;
+    const headers = this.buildHeaders(options);
 
     const response = await fetch(url, {
       ...options,
@@ -65,12 +84,35 @@ class ApiClient {
     });
 
     if (!response.ok) {
+      // Rafraîchir le token en cas d'expiration et réessayer une fois
+      if (response.status === 401 && !isRetry) {
+        try {
+          await this.refreshToken();
+        } catch (refreshError) {
+          window.location.href = '/login';
+          throw new Error('Session expirée, veuillez vous reconnecter');
+        }
+        return this.request<T>(endpoint, options, true);
+      }
+
       const error = await response.json().catch(() => ({ message: 'Une erreur est survenue' }));
       throw new Error(error.message || `Erreur HTTP ${response.status}`);
     }
 
     const json = await response.json();
     return { data: json };
+  }
+
+  private async refreshToken(): Promise<void> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = useAuthStore
+        .getState()
+        .refreshSession()
+        .finally(() => {
+          this.refreshPromise = null;
+        });
+    }
+    await this.refreshPromise;
   }
 
   async get<T>(endpoint: string): Promise<{ data: T }> {

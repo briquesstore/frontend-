@@ -15,6 +15,7 @@ import {
   Tag,
   FileText,
   Bell,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'logistics', label: 'Logistique', path: '/admin/logistics', icon: <Truck size={20} />, module: 'logistics' },
   { key: 'customers', label: 'Clients', path: '/admin/customers', icon: <Users size={20} />, module: 'customers' },
   { key: 'claims', label: 'Réclamations', path: '/admin/claims', icon: <AlertTriangle size={20} />, module: 'claims' },
+  { key: 'refunds', label: 'Remboursements', path: '/admin/refunds', icon: <RotateCcw size={20} />, module: 'refunds' },
   { key: 'notifications', label: 'Notifications Push', path: '/admin/notifications', icon: <Bell size={20} />, module: 'settings' },
   { key: 'reports', label: 'Rapports', path: '/admin/reports', icon: <LineChart size={20} />, module: 'reports' },
   { key: 'settings', label: 'Paramètres', path: '/admin/settings', icon: <Settings size={20} />, module: 'settings' },
@@ -65,15 +67,24 @@ export default function Sidebar() {
         collapsed ? 'w-[72px]' : 'w-[260px]',
       )}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-white/10">
-        <img src="/logo.png" alt="BRIQUES.STORE" className="w-8 h-8 rounded-lg flex-shrink-0 object-contain" />
-        {!collapsed && (
-          <div className="ml-3 overflow-hidden">
-            <span className="font-bold text-sm tracking-wide">BRIQUES</span>
-            <span className="font-bold text-sm tracking-wide text-[#FF8C00]">.STORE</span>
-          </div>
-        )}
+      {/* Logo + Toggle */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
+        <div className="flex items-center overflow-hidden">
+          <img src="/logo.png" alt="BRIQUES.STORE" className="w-8 h-8 rounded-lg flex-shrink-0 object-contain" />
+          {!collapsed && (
+            <div className="ml-3 overflow-hidden">
+              <span className="font-bold text-sm tracking-wide">BRIQUES</span>
+              <span className="font-bold text-sm tracking-wide text-[#FF8C00]">.STORE</span>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={toggle}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0"
+          title={collapsed ? 'Déplier' : 'Réduire'}
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
       </div>
 
       {/* Navigation */}
@@ -115,17 +126,6 @@ export default function Sidebar() {
           })}
         </ul>
       </nav>
-
-      {/* Collapse toggle */}
-      <div className="p-3 border-t border-white/10">
-        <button
-          onClick={toggle}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-sm"
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          {!collapsed && <span>Réduire</span>}
-        </button>
-      </div>
     </aside>
   );
 }

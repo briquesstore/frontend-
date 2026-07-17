@@ -10,6 +10,7 @@ const MODULE_ACCESS: Record<string, Role[]> = {
   logistics:   ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS'],
   customers:   ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
   claims:      ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
+  refunds:     ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
   reports:     ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS'],
   settings:    ['SUPER_ADMIN', 'ADMIN'],
 };
@@ -35,6 +36,8 @@ type Permission =
   | 'claims.assign'
   | 'claims.resolve'
   | 'claims.read_only'
+  | 'refunds.manage'
+  | 'refunds.read_only'
   | 'reports.export'
   | 'settings.manage_users'
   | 'settings.system';
@@ -48,6 +51,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'logistics.assign', 'logistics.manage_drivers',
     'customers.edit', 'customers.notes',
     'claims.assign', 'claims.resolve',
+    'refunds.manage',
     'reports.export',
     'settings.manage_users', 'settings.system',
   ],
@@ -59,6 +63,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'logistics.assign', 'logistics.manage_drivers',
     'customers.edit', 'customers.notes',
     'claims.assign', 'claims.resolve',
+    'refunds.manage',
     'reports.export',
     'settings.manage_users',
   ],
@@ -70,12 +75,14 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'logistics.assign', 'logistics.manage_drivers',
     'customers.edit', 'customers.notes',
     'claims.read_only',
+    'refunds.read_only',
     'reports.export',
   ],
   SERVICE_CLIENT: [
     'orders.add_notes',
     'customers.notes',
     'claims.assign', 'claims.resolve',
+    'refunds.read_only',
   ],
 };
 

@@ -287,6 +287,45 @@ export const CLAIM_TYPE_LABELS: Record<ClaimType, string> = {
   OTHER: 'Autre',
 };
 
+export type RefundStatus = 'MANUAL' | 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED' | 'APPROVED';
+
+export const REFUND_STATUS_LABELS: Record<RefundStatus, string> = {
+  MANUAL: 'Manuel à traiter',
+  PENDING: 'En attente',
+  PROCESSING: 'En cours',
+  SUCCEEDED: 'Effectué',
+  FAILED: 'Échoué',
+  CANCELLED: 'Annulé',
+  APPROVED: 'Approuvé',
+};
+
+export const REFUND_STATUS_COLORS: Record<RefundStatus, string> = {
+  MANUAL: '#FF8C00',
+  PENDING: '#FFC107',
+  PROCESSING: '#2196F3',
+  SUCCEEDED: '#4CAF50',
+  FAILED: '#F44336',
+  CANCELLED: '#9E9E9E',
+  APPROVED: '#9C27B0',
+};
+
+export type RefundReason =
+  | 'DEFECTIVE_PRODUCT'
+  | 'WRONG_PRODUCT'
+  | 'DELIVERY_FAILURE'
+  | 'PREORDER_CANCELLED_FULL'
+  | 'ORDER_CANCELLED_BY_CUSTOMER'
+  | 'OTHER';
+
+export const REFUND_REASON_LABELS: Record<RefundReason, string> = {
+  DEFECTIVE_PRODUCT: 'Produit défectueux',
+  WRONG_PRODUCT: 'Mauvais produit',
+  DELIVERY_FAILURE: 'Échec de livraison',
+  PREORDER_CANCELLED_FULL: 'Annulation pré-commande',
+  ORDER_CANCELLED_BY_CUSTOMER: 'Annulation commande client',
+  OTHER: 'Autre',
+};
+
 export type ClaimStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
 export const CLAIM_STATUS_LABELS: Record<ClaimStatus, string> = {

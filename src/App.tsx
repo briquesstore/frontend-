@@ -21,6 +21,8 @@ import CustomersListPage from "@/features/customers/CustomersListPage";
 import CustomerDetailPage from "@/features/customers/CustomerDetailPage";
 import ClaimsListPage from "@/features/claims/ClaimsListPage";
 import ClaimDetailPage from "@/features/claims/ClaimDetailPage";
+import RefundsListPage from "@/features/refunds/RefundsListPage";
+import RefundDetailPage from "@/features/refunds/RefundDetailPage";
 import ReportsPage from "@/features/reports/ReportsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 import ProfilePage from "@/features/auth/ProfilePage";
@@ -94,6 +96,9 @@ function AppContent() {
 
         <Route path="claims" element={<ProtectedRoute module="claims"><ClaimsListPage /></ProtectedRoute>} />
         <Route path="claims/:id" element={<ProtectedRoute module="claims"><ClaimDetailPage /></ProtectedRoute>} />
+
+        <Route path="refunds" element={<ProtectedRoute module="refunds"><RefundsListPage /></ProtectedRoute>} />
+        <Route path="refunds/:id" element={<ProtectedRoute module="refunds"><RefundDetailPage /></ProtectedRoute>} />
 
         <Route path="reports" element={<ProtectedRoute module="reports"><ReportsPage /></ProtectedRoute>} />
 
