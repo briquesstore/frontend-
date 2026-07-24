@@ -43,6 +43,10 @@ export default function RefundDetailPage() {
   const handleMarkResolved = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !transferReference.trim()) return;
+    if (isOverRefund) {
+      setError(`Impossible de clôturer ce remboursement : le montant demandé dépasse le paiement original de ${formatCFA(excessAmount)}.`);
+      return;
+    }
     setSubmitting(true);
     try {
       const updated = await refundsApiService.markResolved(id, transferReference.trim());
@@ -110,6 +114,8 @@ export default function RefundDetailPage() {
 
   const statusColor = REFUND_STATUS_COLORS[refund.status];
   const isTreatable = refund.status === 'MANUAL' || refund.status === 'PENDING' || refund.status === 'APPROVED';
+  const isOverRefund = refund.amount > refund.payment.amount;
+  const excessAmount = Math.max(0, refund.amount - refund.payment.amount);
 
   return (
     <div>
@@ -165,10 +171,13 @@ export default function RefundDetailPage() {
                 {refund.payment.method && <p className="text-xs text-gray-400 mt-1">{refund.payment.method}</p>}
               </div>
             </div>
-            {refund.amount > refund.payment.amount && (
+            {isOverRefund && (
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 <AlertCircle size={16} className="inline mr-2" />
-                ⚠️ Le montant du remboursement dépasse le paiement original. Contrôle requis.
+                ⚠️ Le montant du remboursement ({formatCFA(refund.amount)}) dépasse le paiement original ({formatCFA(refund.payment.amount)}). Excédent : {formatCFA(excessAmount)}.
+                {refund.status === 'SUCCEEDED' && (
+                  <span className="block mt-1 font-semibold">Ce remboursement a été clôturé malgré le dépassement.</span>
+                )}
               </div>
             )}
           </div>
@@ -276,7 +285,7 @@ export default function RefundDetailPage() {
           </div>
 
           {/* Actions */}
-          {canManage && isTreatable && (
+          {canManage && isTreatable && !isOverRefund && (
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Actions</h3>
               <div className="space-y-2">
