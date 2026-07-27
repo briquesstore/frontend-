@@ -81,14 +81,6 @@ interface BackendDelivery {
   };
 }
 
-interface BackendDriver {
-  id: string;
-  user: { firstName: string; lastName: string; phone?: string };
-  vehicleType?: string;
-  capacity?: string;
-  isActive: boolean;
-}
-
 function mapDelivery(item: BackendDelivery): DeliveryRow {
   const addressParts = [
     item.deliveryAddress?.street,

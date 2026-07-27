@@ -163,8 +163,9 @@ export default function LogisticsPage() {
                         </tr>
                       );
                     })}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -202,7 +203,7 @@ export default function LogisticsPage() {
                     <td className="px-4 py-3 text-sm text-gray-600">{d.capacity}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {d.zones.map((z) => (
+                        {d.zones?.map((z) => (
                           <span key={z} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{z}</span>
                         ))}
                       </div>
