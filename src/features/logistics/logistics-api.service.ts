@@ -164,8 +164,8 @@ class LogisticsApiService {
   // Pour les livreurs et zones, nous aurons besoin d'endpoints dédiés
   // Pour l'instant, on garde les mocks ou on créera les endpoints backend plus tard
   async getDrivers(): Promise<DriverRow[]> {
-    // TODO: Connecter à un endpoint backend réel quand disponible
-    return [];
+    const response = await apiClient.get<DriverRow[]>('/admin/drivers');
+    return response.data;
   }
 
   async getZones(): Promise<ZoneRow[]> {

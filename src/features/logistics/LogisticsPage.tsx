@@ -7,13 +7,6 @@ import { logisticsApiService, type DeliveryRow, type DriverRow, type ZoneRow } f
 
 type Tab = 'planning' | 'drivers' | 'zones';
 
-const MOCK_DRIVERS: DriverRow[] = [
-  { id: '1', name: 'Koné Ibrahim', phone: '+225 07 55 66 77', vehicleType: 'Camion 10T', capacity: '10 tonnes', zones: ['Abidjan intra-muros', 'Grand Abidjan'], isActive: true, currentDeliveries: 2 },
-  { id: '2', name: 'Touré Ali', phone: '+225 05 44 33 22', vehicleType: 'Camion 5T', capacity: '5 tonnes', zones: ['Abidjan intra-muros'], isActive: true, currentDeliveries: 1 },
-  { id: '3', name: 'Diarra Moussa', phone: '+225 01 88 99 00', vehicleType: 'Camion 15T', capacity: '15 tonnes', zones: ['Abidjan intra-muros', 'Grand Abidjan', 'Villes intérieur'], isActive: true, currentDeliveries: 1 },
-  { id: '4', name: 'Coulibaly Adama', phone: '+225 07 11 22 33', vehicleType: 'Pick-up', capacity: '2 tonnes', zones: ['Abidjan intra-muros'], isActive: false, currentDeliveries: 0 },
-];
-
 const MOCK_ZONES: ZoneRow[] = [
   { id: '1', name: 'Abidjan intra-muros', baseFee: 15000, standardDays: 3, expressDays: 1, isActive: true },
   { id: '2', name: 'Grand Abidjan', baseFee: 25000, standardDays: 5, expressDays: 2, isActive: true },
@@ -38,9 +31,12 @@ export default function LogisticsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('planning');
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
   const [loadingDeliveries, setLoadingDeliveries] = useState(true);
+  const [drivers, setDrivers] = useState<DriverRow[]>([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(true);
 
   useEffect(() => {
     loadDeliveries();
+    loadDrivers();
   }, []);
 
   const loadDeliveries = async () => {
@@ -52,6 +48,18 @@ export default function LogisticsPage() {
       console.error('Erreur lors du chargement des livraisons:', err);
     } finally {
       setLoadingDeliveries(false);
+    }
+  };
+
+  const loadDrivers = async () => {
+    setLoadingDrivers(true);
+    try {
+      const data = await logisticsApiService.getDrivers();
+      setDrivers(data);
+    } catch (err) {
+      console.error('Erreur lors du chargement des livreurs:', err);
+    } finally {
+      setLoadingDrivers(false);
     }
   };
 
@@ -174,53 +182,59 @@ export default function LogisticsPage() {
       {/* Drivers Tab */}
       {activeTab === 'drivers' && (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Livreur</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Téléphone</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Véhicule</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Capacité</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Zones</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">En cours</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_DRIVERS.map((d) => (
-                  <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                          <Truck size={14} />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">{d.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{d.phone}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{d.vehicleType}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{d.capacity}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {d.zones?.map((z) => (
-                          <span key={z} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{z}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{d.currentDeliveries}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={cn('inline-flex px-2.5 py-1 rounded-full text-xs font-semibold',
-                        d.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500',
-                      )}>
-                        {d.isActive ? 'Actif' : 'Inactif'}
-                      </span>
-                    </td>
+          {loadingDrivers ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={32} className="animate-spin text-[#FF8C00]" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Livreur</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Téléphone</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Véhicule</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Capacité</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Zones</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">En cours</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Statut</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {drivers.map((d) => (
+                    <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                            <Truck size={14} />
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">{d.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{d.phone}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{d.vehicleType || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{d.capacity || '-'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {d.zones?.map((z) => (
+                            <span key={z} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{z}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{d.currentDeliveries}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={cn('inline-flex px-2.5 py-1 rounded-full text-xs font-semibold',
+                          d.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500',
+                        )}>
+                          {d.isActive ? 'Actif' : 'Inactif'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
