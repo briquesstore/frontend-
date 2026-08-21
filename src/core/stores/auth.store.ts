@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       console.log('Appel API login...');
-      const { data } = await api.post('/backoffice/auth/login', { identifier: email, password });
+      const { data } = await api.post('/backoffice/auth/login', { email, password });
       console.log('Réponse API login:', data);
       // Stocker l'access token dans le store et dans l'interceptor
       setAccessToken(data.accessToken);
