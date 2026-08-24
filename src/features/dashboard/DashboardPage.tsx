@@ -3,20 +3,12 @@ import {
   TrendingUp, TrendingDown, ShoppingCart, DollarSign,
   Package, Truck, AlertTriangle, Clock, CreditCard, Calendar,
 } from 'lucide-react';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar,
-} from 'recharts';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
-import { formatCFA, formatPercentChange } from '@/core/utils/formatters';
+import { formatPercentChange } from '@/core/utils/formatters';
 
 // ─── API data ──────────────────────────────────────────────────
 // TODO: Fetch from API endpoints
-const REVENUE_DATA: any[] = [];
-const ORDER_STATUS_DATA: any[] = [];
-const TOP_PRODUCTS: any[] = [];
-const PAYMENT_DATA: any[] = [];
 
 type Period = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -209,40 +201,13 @@ export default function DashboardPage() {
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Évolution du CA</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={REVENUE_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
-              <Tooltip formatter={(v: any) => formatCFA(v)} />
-              <Area type="monotone" dataKey="current" stroke="#FF8C00" fill="#FF8C0020" strokeWidth={2} name="Période actuelle" />
-              <Area type="monotone" dataKey="previous" stroke="#94a3b8" fill="#94a3b810" strokeWidth={1.5} strokeDasharray="4 4" name="Période précédente" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <p className="text-sm text-gray-500">Chargement...</p>
         </div>
 
         {/* Order Status Donut */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Commandes par statut</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={ORDER_STATUS_DATA} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
-                {ORDER_STATUS_DATA.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v: any) => `${v} commandes`} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2">
-            {ORDER_STATUS_DATA.map((item) => (
-              <div key={item.name} className="flex items-center gap-2 text-xs">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="text-gray-600 truncate">{item.name}</span>
-                <span className="font-semibold text-gray-900 ml-auto">{item.value}</span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-gray-500">Chargement...</p>
         </div>
       </div>
 
@@ -251,42 +216,13 @@ export default function DashboardPage() {
         {/* Top Products */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Top 7 produits vendus</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={TOP_PRODUCTS} layout="vertical" margin={{ left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: any) => `${Number(v).toLocaleString('fr-FR')} unités`} />
-              <Bar dataKey="sold" fill="#FF8C00" radius={[0, 4, 4, 0]} barSize={18} />
-            </BarChart>
-          </ResponsiveContainer>
+          <p className="text-sm text-gray-500">Chargement...</p>
         </div>
 
         {/* Payment Methods */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Modes de paiement</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={PAYMENT_DATA} cx="50%" cy="50%" outerRadius={80} dataKey="value" paddingAngle={2}>
-                {PAYMENT_DATA.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v: any) => `${v}%`} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-2 mt-2">
-            {PAYMENT_DATA.map((item) => (
-              <div key={item.name} className="flex items-center gap-2 text-xs">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="text-gray-600 flex-1">{item.name}</span>
-                <div className="w-24 bg-gray-100 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
-                </div>
-                <span className="font-semibold text-gray-900 w-8 text-right">{item.value}%</span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-gray-500">Chargement...</p>
         </div>
       </div>
 
