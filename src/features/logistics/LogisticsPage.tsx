@@ -2,20 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Users, MapPin, Calendar, Eye, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatDate, formatCFA } from '@/core/utils/formatters';
-import { logisticsApiService, type DeliveryRow, type DriverRow, type ZoneRow } from './logistics-api.service';
+import { formatDate } from '@/core/utils/formatters';
+import { logisticsApiService, type DeliveryRow, type DriverRow } from './logistics-api.service';
 
 type Tab = 'planning' | 'drivers' | 'zones';
-
-const MOCK_ZONES: ZoneRow[] = [
-  { id: '1', name: 'Abidjan intra-muros', baseFee: 15000, standardDays: 3, expressDays: 1, isActive: true },
-  { id: '2', name: 'Grand Abidjan', baseFee: 25000, standardDays: 5, expressDays: 2, isActive: true },
-  { id: '3', name: 'Bouaké', baseFee: 45000, standardDays: 7, expressDays: 3, isActive: true },
-  { id: '4', name: 'Yamoussoukro', baseFee: 40000, standardDays: 7, expressDays: 3, isActive: true },
-  { id: '5', name: 'San Pedro', baseFee: 55000, standardDays: 7, expressDays: 4, isActive: true },
-  { id: '6', name: 'Korhogo', baseFee: 60000, standardDays: 10, expressDays: 5, isActive: true },
-  { id: '7', name: 'Zones rurales', baseFee: 0, standardDays: 0, expressDays: 0, isActive: false },
-];
 
 const DELIVERY_STATUS: Record<string, { bg: string; text: string; label: string }> = {
   ASSIGNED: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Assignée' },
@@ -240,47 +230,13 @@ export default function LogisticsPage() {
 
       {/* Zones Tab */}
       {activeTab === 'zones' && (
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Zone</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Tarif base</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Délai standard</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Délai express</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_ZONES.map((z) => (
-                  <tr key={z.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={14} className="text-[#FF8C00]" />
-                        <span className="text-sm font-medium text-gray-900">{z.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      {z.baseFee > 0 ? formatCFA(z.baseFee) : 'Sur devis'}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-600">
-                      {z.standardDays > 0 ? `${z.standardDays} jours` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-600">
-                      {z.expressDays > 0 ? `${z.expressDays} jours` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={cn('inline-flex px-2.5 py-1 rounded-full text-xs font-semibold',
-                        z.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500',
-                      )}>
-                        {z.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="bg-white rounded-xl border border-gray-100 p-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <MapPin size={32} className="text-gray-400" />
+            </div>
+            <p className="text-base font-medium text-gray-900 mb-1">Zones de livraison</p>
+            <p className="text-sm text-gray-500">Chargement...</p>
           </div>
         </div>
       )}
