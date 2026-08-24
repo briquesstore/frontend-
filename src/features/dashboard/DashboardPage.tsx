@@ -55,32 +55,6 @@ function KPICard({ title, value, change, icon, iconBg, suffix }: {
   );
 }
 
-// ─── Alert Item ─────────────────────────────────────────────────
-function AlertItem({ urgency, title, description, action, onClick }: {
-  urgency: 'high' | 'medium' | 'info';
-  title: string;
-  description: string;
-  action: string;
-  onClick: () => void;
-}) {
-  const colors = {
-    high: 'border-l-red-500 bg-red-50/50',
-    medium: 'border-l-yellow-500 bg-yellow-50/50',
-    info: 'border-l-blue-500 bg-blue-50/50',
-  };
-  return (
-    <div className={cn('border-l-4 rounded-r-lg p-3 flex items-center justify-between', colors[urgency])}>
-      <div>
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
-        <p className="text-xs text-gray-500">{description}</p>
-      </div>
-      <button onClick={onClick} className="text-xs font-medium text-[#FF8C00] hover:underline whitespace-nowrap ml-4">
-        {action}
-      </button>
-    </div>
-  );
-}
-
 // ─── Service Client Dashboard ───────────────────────────────────
 function ServiceClientDashboard() {
   return (

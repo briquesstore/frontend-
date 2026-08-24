@@ -10,10 +10,6 @@ type Tab = 'commercial' | 'stock' | 'logistics';
 
 // TODO: Fetch from API endpoints
 const MONTHLY_REVENUE: any[] = [];
-const SALES_BY_PRODUCT: any[] = [];
-const SALES_BY_ZONE: any[] = [];
-const STOCK_ROTATION: any[] = [];
-const DELIVERY_PERF: any[] = [];
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('commercial');
