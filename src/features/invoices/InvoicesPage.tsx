@@ -102,7 +102,7 @@ export default function InvoicesPage() {
       {/* DGI compliance badge */}
       <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-lg mb-4 text-xs">
         <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
-        <span className="text-green-700 font-medium">Factures conformes à la réglementation DGI — TVA 18% — Numérotation chronologique — Archivage sécurisé 10 ans</span>
+        <span className="text-green-700 font-medium">Factures conformes à la réglementation DGI TVA 18%  Numérotation chronologique Archivage sécurisé 10 ans</span>
       </div>
 
       {loading && (
