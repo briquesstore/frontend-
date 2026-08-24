@@ -40,7 +40,7 @@ export default function AdminLayout() {
         </main>
         {/* Footer */}
         <footer className="border-t border-gray-200 bg-white px-6 py-3 text-xs text-gray-400 flex items-center justify-between">
-          <span>BRIQUES.STORE Administration — v1.0</span>
+          <span>BRIQUES.STORE Administration v1.0</span>
           <span>Support : support@briques.store</span>
         </footer>
       </div>

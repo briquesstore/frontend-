@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, Loader2, Calendar } from 'lucide-react';
+import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight, Loader2, Calendar, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
 import { formatCFA, formatDateTime } from '@/core/utils/formatters';
@@ -403,8 +403,14 @@ export default function OrdersListPage() {
                 ))}
                 {orders.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-gray-400 text-sm">
-                      Aucune commande trouvée
+                    <td colSpan={8} className="px-4 py-16">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                          <ShoppingCart size={32} className="text-gray-400" />
+                        </div>
+                        <p className="text-base font-medium text-gray-900 mb-1">Aucune commande trouvée</p>
+                        <p className="text-sm text-gray-500">Essayez d'ajuster vos filtres de recherche</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -412,12 +418,13 @@ export default function OrdersListPage() {
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
-              {total} résultat(s) — Page {page}/{totalPages}
-            </p>
-            <div className="flex items-center gap-1">
+          {/* Pagination - only show when there are results */}
+          {orders.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <p className="text-sm text-gray-500">
+                {total} résultat(s) — Page {page}/{totalPages}
+              </p>
+              <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page <= 1}
@@ -434,6 +441,7 @@ export default function OrdersListPage() {
               </button>
             </div>
           </div>
+          )}
         </div>
       )}
 
