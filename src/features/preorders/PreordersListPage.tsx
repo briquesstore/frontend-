@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, AlertTriangle, Loader2, CheckCircle2, ArrowRightCircle } from 'lucide-react';
+import { Search, Eye, AlertTriangle, Loader2, CheckCircle2, ArrowRightCircle, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate } from '@/core/utils/formatters';
 import { preordersAdminApi, type Preorder } from './services/preorders-admin-api.service';
@@ -187,8 +187,14 @@ export default function PreordersListPage() {
                 })}
                 {preorders.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
-                      Aucune pré-commande trouvée
+                    <td colSpan={7} className="px-4 py-16">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                          <ShoppingCart size={32} className="text-gray-400" />
+                        </div>
+                        <p className="text-base font-medium text-gray-900 mb-1">Aucune pré-commande trouvée</p>
+                        <p className="text-sm text-gray-500">Essayez d'ajuster vos filtres de recherche</p>
+                      </div>
                     </td>
                   </tr>
                 )}

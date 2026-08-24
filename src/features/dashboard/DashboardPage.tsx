@@ -68,7 +68,13 @@ function ServiceClientDashboard() {
 
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Réclamations prioritaires</h3>
-        <p className="text-sm text-gray-500">Chargement...</p>
+        <div className="flex flex-col items-center justify-center text-center py-8">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <AlertTriangle size={24} className="text-gray-400" />
+          </div>
+          <p className="text-sm font-medium text-gray-900 mb-1">Aucune réclamation</p>
+          <p className="text-xs text-gray-500">Les réclamations seront affichées ici</p>
+        </div>
       </div>
     </>
   );
@@ -175,13 +181,25 @@ export default function DashboardPage() {
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Évolution du CA</h3>
-          <p className="text-sm text-gray-500">Chargement...</p>
+          <div className="flex flex-col items-center justify-center text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <TrendingUp size={24} className="text-gray-400" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 mb-1">Données non disponibles</p>
+            <p className="text-xs text-gray-500">Les données de chiffre d'affaires seront bientôt disponibles</p>
+          </div>
         </div>
 
         {/* Order Status Donut */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Commandes par statut</h3>
-          <p className="text-sm text-gray-500">Chargement...</p>
+          <div className="flex flex-col items-center justify-center text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <ShoppingCart size={24} className="text-gray-400" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 mb-1">Données non disponibles</p>
+            <p className="text-xs text-gray-500">Les données de commandes seront bientôt disponibles</p>
+          </div>
         </div>
       </div>
 
@@ -190,20 +208,38 @@ export default function DashboardPage() {
         {/* Top Products */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Top 7 produits vendus</h3>
-          <p className="text-sm text-gray-500">Chargement...</p>
+          <div className="flex flex-col items-center justify-center text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <Package size={24} className="text-gray-400" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 mb-1">Données non disponibles</p>
+            <p className="text-xs text-gray-500">Les données de produits seront bientôt disponibles</p>
+          </div>
         </div>
 
         {/* Payment Methods */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Modes de paiement</h3>
-          <p className="text-sm text-gray-500">Chargement...</p>
+          <div className="flex flex-col items-center justify-center text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <CreditCard size={24} className="text-gray-400" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 mb-1">Données non disponibles</p>
+            <p className="text-xs text-gray-500">Les données de paiement seront bientôt disponibles</p>
+          </div>
         </div>
       </div>
 
       {/* Alerts */}
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Alertes & actions rapides</h3>
-        <p className="text-sm text-gray-500">Chargement...</p>
+        <div className="flex flex-col items-center justify-center text-center py-8">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <AlertTriangle size={24} className="text-gray-400" />
+          </div>
+          <p className="text-sm font-medium text-gray-900 mb-1">Aucune alerte</p>
+          <p className="text-xs text-gray-500">Les alertes seront affichées ici</p>
+        </div>
       </div>
     </div>
   );
