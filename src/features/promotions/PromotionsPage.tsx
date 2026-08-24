@@ -28,14 +28,8 @@ const STATUS_CONFIG: Record<PromoStatus, { label: string; color: string; bg: str
   DISABLED: { label: 'Désactivée', color: 'text-red-700', bg: 'bg-red-50' },
 };
 
-const MOCK_PROMOS: Promotion[] = [
-  { id: '1', code: 'REFRAC15', title: '-15% Briques Réfractaires', description: 'Pour toute commande > 500 unités de briques réfractaires', discountType: 'PERCENTAGE', discountValue: 15, minOrderAmount: 500000, maxUses: 100, currentUses: 34, status: 'ACTIVE', startDate: '2026-03-01', endDate: '2026-03-31', applicableProducts: 'Briques réfractaires' },
-  { id: '2', code: 'FREEDELIVERY', title: 'Livraison gratuite', description: 'Livraison offerte sur Abidjan pour commandes > 500 000 FCFA', discountType: 'FIXED', discountValue: 0, minOrderAmount: 500000, status: 'ACTIVE', startDate: '2026-03-01', endDate: '2026-04-30', currentUses: 67, applicableProducts: 'Tous les produits' },
-  { id: '3', code: 'HOURDIS10', title: '-10% Hourdis Français', description: 'Offre spéciale sur hourdis français 16 et 20', discountType: 'PERCENTAGE', discountValue: 10, maxUses: 50, currentUses: 18, status: 'ACTIVE', startDate: '2026-03-05', endDate: '2026-03-20', applicableProducts: 'Hourdis' },
-  { id: '4', code: 'PACK20', title: 'Pack Chantier -20%', description: 'Briques + hourdis ensemble', discountType: 'PERCENTAGE', discountValue: 20, maxUses: 30, currentUses: 12, status: 'ACTIVE', startDate: '2026-03-01', endDate: '2026-03-25', applicableProducts: 'Multi-produits' },
-  { id: '5', code: 'BIENVENUE', title: 'Bienvenue -5%', description: 'Réduction pour première commande', discountType: 'PERCENTAGE', discountValue: 5, status: 'SCHEDULED', startDate: '2026-04-01', endDate: '2026-06-30', currentUses: 0, applicableProducts: 'Tous les produits' },
-  { id: '6', code: 'NOEL2025', title: 'Noël -10%', description: 'Promotion de fin d\'année', discountType: 'PERCENTAGE', discountValue: 10, status: 'EXPIRED', startDate: '2025-12-15', endDate: '2025-12-31', currentUses: 89, applicableProducts: 'Tous les produits' },
-];
+// TODO: Fetch from API endpoints
+const MOCK_PROMOS: Promotion[] = [];
 
 export default function PromotionsPage() {
   const [search, setSearch] = useState('');

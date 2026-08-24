@@ -11,43 +11,12 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
 import { formatCFA, formatPercentChange } from '@/core/utils/formatters';
 
-// ─── Mock data ──────────────────────────────────────────────────
-const REVENUE_DATA = [
-  { day: 'Lun', current: 1250000, previous: 980000 },
-  { day: 'Mar', current: 1800000, previous: 1400000 },
-  { day: 'Mer', current: 1400000, previous: 1600000 },
-  { day: 'Jeu', current: 2100000, previous: 1500000 },
-  { day: 'Ven', current: 2800000, previous: 2200000 },
-  { day: 'Sam', current: 3200000, previous: 2800000 },
-  { day: 'Dim', current: 1500000, previous: 1200000 },
-];
-
-const ORDER_STATUS_DATA = [
-  { name: 'En attente', value: 12, color: '#FFC107' },
-  { name: 'Validées', value: 28, color: '#2196F3' },
-  { name: 'En fabrication', value: 15, color: '#FF9800' },
-  { name: 'Expédiées', value: 8, color: '#9C27B0' },
-  { name: 'Livrées', value: 45, color: '#4CAF50' },
-  { name: 'Annulées', value: 3, color: '#F44336' },
-];
-
-const TOP_PRODUCTS = [
-  { name: 'Brique Pleine 20cm', sold: 12400 },
-  { name: 'Brique Creuse 15cm', sold: 9800 },
-  { name: 'Hourdis 16cm', sold: 7600 },
-  { name: 'Brique Réfractaire', sold: 5200 },
-  { name: 'Brique Décorative Rouge', sold: 4100 },
-  { name: 'Brique Pleine 15cm', sold: 3800 },
-  { name: 'Brique Creuse 20cm', sold: 3200 },
-];
-
-const PAYMENT_DATA = [
-  { name: 'Orange Money', value: 35, color: '#FF6600' },
-  { name: 'MTN Money', value: 25, color: '#FFC107' },
-  { name: 'Wave', value: 20, color: '#2196F3' },
-  { name: 'Carte bancaire', value: 12, color: '#9C27B0' },
-  { name: 'Virement', value: 8, color: '#607D8B' },
-];
+// ─── API data ──────────────────────────────────────────────────
+// TODO: Fetch from API endpoints
+const REVENUE_DATA: any[] = [];
+const ORDER_STATUS_DATA: any[] = [];
+const TOP_PRODUCTS: any[] = [];
+const PAYMENT_DATA: any[] = [];
 
 type Period = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -125,19 +94,15 @@ function ServiceClientDashboard() {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard title="Réclamations ouvertes" value="8" suffix="dont 3 non assignées" icon={<AlertTriangle size={20} className="text-red-600" />} iconBg="bg-red-100" />
-        <KPICard title="Assignées à moi" value="5" icon={<Package size={20} className="text-blue-600" />} iconBg="bg-blue-100" />
-        <KPICard title="Délai moyen traitement" value="18h" suffix="objectif < 24h" icon={<Clock size={20} className="text-yellow-600" />} iconBg="bg-yellow-100" />
-        <KPICard title="Résolues ce mois" value="23" change={12.5} icon={<TrendingUp size={20} className="text-green-600" />} iconBg="bg-green-100" />
+        <KPICard title="Réclamations ouvertes" value="-" suffix="Chargement..." icon={<AlertTriangle size={20} className="text-red-600" />} iconBg="bg-red-100" />
+        <KPICard title="Assignées à moi" value="-" icon={<Package size={20} className="text-blue-600" />} iconBg="bg-blue-100" />
+        <KPICard title="Délai moyen traitement" value="-" suffix="Chargement..." icon={<Clock size={20} className="text-yellow-600" />} iconBg="bg-yellow-100" />
+        <KPICard title="Résolues ce mois" value="-" icon={<TrendingUp size={20} className="text-green-600" />} iconBg="bg-green-100" />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Réclamations prioritaires</h3>
-        <div className="space-y-3">
-          <AlertItem urgency="high" title="Produit défectueux — CMD-2026-00892" description="Client : Kouassi Jean — Il y a 2h" action="Traiter" onClick={() => {}} />
-          <AlertItem urgency="high" title="Articles manquants — CMD-2026-00887" description="Client : Société ABC SARL — Il y a 5h" action="Traiter" onClick={() => {}} />
-          <AlertItem urgency="medium" title="Retard livraison — CMD-2026-00875" description="Client : Diallo Mamadou — Il y a 1j" action="Voir" onClick={() => {}} />
-        </div>
+        <p className="text-sm text-gray-500">Chargement...</p>
       </div>
     </>
   );
@@ -188,29 +153,25 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard
           title="Chiffre d'affaires"
-          value={formatCFA(14050000)}
-          change={18.3}
+          value="-"
           icon={<DollarSign size={20} className="text-green-600" />}
           iconBg="bg-green-100"
         />
         <KPICard
           title="Commandes du jour"
-          value="24"
-          suffix="dont 12 à valider"
+          value="-"
           icon={<ShoppingCart size={20} className="text-blue-600" />}
           iconBg="bg-blue-100"
         />
         <KPICard
           title="Panier moyen"
-          value={formatCFA(585416)}
-          change={5.2}
+          value="-"
           icon={<CreditCard size={20} className="text-purple-600" />}
           iconBg="bg-purple-100"
         />
         <KPICard
           title="Pré-commandes actives"
-          value="18"
-          suffix={formatCFA(32400000)}
+          value="-"
           icon={<Calendar size={20} className="text-orange-600" />}
           iconBg="bg-orange-100"
         />
@@ -219,29 +180,25 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard
           title="Alertes stock"
-          value="7"
-          suffix="dont 2 critiques 🔴"
+          value="-"
           icon={<Package size={20} className="text-yellow-600" />}
           iconBg="bg-yellow-100"
         />
         <KPICard
           title="Livraisons du jour"
-          value="15 / 22"
-          suffix="effectuées"
+          value="-"
           icon={<Truck size={20} className="text-indigo-600" />}
           iconBg="bg-indigo-100"
         />
         <KPICard
           title="Livraisons en retard"
-          value="3"
-          suffix="depuis 2j en moyenne"
+          value="-"
           icon={<Clock size={20} className="text-red-600" />}
           iconBg="bg-red-100"
         />
         <KPICard
           title="Échéances impayées"
-          value="5"
-          suffix={formatCFA(2750000)}
+          value="-"
           icon={<AlertTriangle size={20} className="text-red-600" />}
           iconBg="bg-red-100"
         />
@@ -336,14 +293,7 @@ export default function DashboardPage() {
       {/* Alerts */}
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Alertes & actions rapides</h3>
-        <div className="space-y-3">
-          <AlertItem urgency="high" title="Stock critique : Brique Pleine 20cm" description="Seulement 15 unités restantes — seuil critique : 20" action="Voir stock" onClick={() => {}} />
-          <AlertItem urgency="high" title="3 livraisons en retard" description="Depuis 2 jours en moyenne — Zone Grand Abidjan" action="Voir planning" onClick={() => {}} />
-          <AlertItem urgency="high" title="5 échéances de pré-commande impayées" description="Montant total : 2 750 000 FCFA" action="Voir détails" onClick={() => {}} />
-          <AlertItem urgency="medium" title="12 commandes en attente de validation" description="Depuis ce matin — 8 clients particuliers, 4 professionnels" action="Valider" onClick={() => {}} />
-          <AlertItem urgency="medium" title="Stock en alerte : Hourdis 16cm" description="85 unités restantes — seuil alerte : 100" action="Voir stock" onClick={() => {}} />
-          <AlertItem urgency="info" title="Nouvelle réclamation non assignée" description="Produit défectueux — CMD-2026-00892 — Il y a 2h" action="Assigner" onClick={() => {}} />
-        </div>
+        <p className="text-sm text-gray-500">Chargement...</p>
       </div>
     </div>
   );
