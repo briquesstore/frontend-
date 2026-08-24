@@ -15,12 +15,12 @@ interface User {
 
 // Statuts de commande pour les notifications
 const ORDER_STATUSES = [
-  { value: 'CONFIRMED', label: 'Commande confirmée', emoji: '✅' },
-  { value: 'PROCESSING', label: 'En cours de fabrication', emoji: '🏭' },
-  { value: 'READY', label: 'Prête pour livraison', emoji: '📦' },
-  { value: 'SHIPPED', label: 'En cours de livraison', emoji: '🚚' },
-  { value: 'DELIVERED', label: 'Livrée', emoji: '🎉' },
-  { value: 'CANCELLED', label: 'Annulée', emoji: '❌' },
+  { value: 'CONFIRMED', label: 'Commande confirmée' },
+  { value: 'PROCESSING', label: 'En cours de fabrication' },
+  { value: 'READY', label: 'Prête pour livraison' },
+  { value: 'SHIPPED', label: 'En cours de livraison' },
+  { value: 'DELIVERED', label: 'Livrée' },
+  { value: 'CANCELLED', label: 'Annulée' },
 ];
 
 export default function WhatsAppPage() {
@@ -349,7 +349,7 @@ export default function WhatsAppPage() {
                     >
                       {ORDER_STATUSES.map((status) => (
                         <option key={status.value} value={status.value}>
-                          {status.emoji} {status.label}
+                          {status.label}
                         </option>
                       ))}
                     </select>
@@ -432,7 +432,6 @@ export default function WhatsAppPage() {
             <div className="space-y-2">
               {ORDER_STATUSES.map((status) => (
                 <div key={status.value} className="flex items-center gap-2 text-sm">
-                  <span>{status.emoji}</span>
                   <span className="text-gray-600">{status.label}</span>
                 </div>
               ))}
