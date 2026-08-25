@@ -37,17 +37,6 @@ export interface DeliveryDetail {
   };
 }
 
-export interface DriverRow {
-  id: string;
-  name: string;
-  phone: string;
-  vehicleType?: string;
-  capacity?: string;
-  zones?: string[];
-  isActive: boolean;
-  currentDeliveries: number;
-}
-
 export interface ZoneRow {
   id: string;
   name: string;
@@ -162,13 +151,6 @@ class LogisticsApiService {
   async regenerateCode(orderId: string): Promise<DeliveryRow> {
     const response = await apiClient.post<BackendDelivery>(`/admin/deliveries/${orderId}/regenerate-code`);
     return mapDelivery(response.data);
-  }
-
-  // Pour les livreurs et zones, nous aurons besoin d'endpoints dédiés
-  // Pour l'instant, on garde les mocks ou on créera les endpoints backend plus tard
-  async getDrivers(): Promise<DriverRow[]> {
-    const response = await apiClient.get<DriverRow[]>('/admin/drivers');
-    return response.data;
   }
 
   async getZones(): Promise<ZoneRow[]> {

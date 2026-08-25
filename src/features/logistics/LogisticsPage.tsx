@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Truck, Users, MapPin, Calendar, Eye, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/core/utils/formatters';
-import { logisticsApiService, type DeliveryRow, type DriverRow } from './logistics-api.service';
+import { logisticsApiService, type DeliveryRow } from './logistics-api.service';
+import { driversApiService, type Driver } from '../drivers/drivers-api.service';
 
 type Tab = 'planning' | 'drivers' | 'zones';
 
@@ -21,7 +22,7 @@ export default function LogisticsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('planning');
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
   const [loadingDeliveries, setLoadingDeliveries] = useState(true);
-  const [drivers, setDrivers] = useState<DriverRow[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loadingDrivers, setLoadingDrivers] = useState(true);
   const [assigningDriver, setAssigningDriver] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ export default function LogisticsPage() {
   const loadDrivers = async () => {
     setLoadingDrivers(true);
     try {
-      const data = await logisticsApiService.getDrivers();
+      const data = await driversApiService.getActiveDrivers();
       setDrivers(data);
     } catch (err) {
       console.error('Erreur lors du chargement des livreurs:', err);
@@ -169,7 +170,7 @@ export default function LogisticsPage() {
                                 <option value="">Non assigné</option>
                                 {drivers.map((driver) => (
                                   <option key={driver.id} value={driver.id}>
-                                    {driver.name}
+                                    {driver.user.firstName} {driver.user.lastName}
                                   </option>
                                 ))}
                               </select>
@@ -228,20 +229,22 @@ export default function LogisticsPage() {
                           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
                             <Truck size={14} />
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{d.name}</span>
+                          <span className="text-sm font-medium text-gray-900">
+                            {d.user.firstName} {d.user.lastName}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{d.phone}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{d.user.phone}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{d.vehicleType || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{d.capacity || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{d.capacity ? `${d.capacity} kg` : '-'}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
-                          {d.zones?.map((z) => (
+                          {d.zones?.map((z: string) => (
                             <span key={z} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{z}</span>
                           ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{d.currentDeliveries}</td>
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{d.orders?.length || 0}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={cn('inline-flex px-2.5 py-1 rounded-full text-xs font-semibold',
                           d.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500',
