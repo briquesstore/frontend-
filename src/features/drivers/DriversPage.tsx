@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Truck, MapPin, Phone, Mail, MoreVertical, Loader2 } from 'lucide-react';
+import { Search, Plus, Truck, MapPin, Phone, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { driversApiService, type Driver } from './drivers-api.service';
 
