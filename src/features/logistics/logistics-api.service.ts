@@ -7,6 +7,7 @@ export interface DeliveryRow {
   phone?: string;
   address: string;
   zone?: string;
+  driverId?: string;
   driverName?: string;
   driverPhone?: string;
   scheduledAt?: string;
@@ -65,6 +66,7 @@ interface BackendDelivery {
     city?: string;
     region?: string;
   };
+  driverId?: string;
   driver?: {
     user: { firstName: string; lastName: string; phone?: string };
   };
@@ -95,6 +97,7 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     phone: item.user.phone,
     address: addressParts.join(', ') || 'Non spécifiée',
     zone: item.deliveryAddress?.region,
+    driverId: item.driverId,
     driverName: item.driver ? `${item.driver.user.firstName} ${item.driver.user.lastName}`.trim() : undefined,
     driverPhone: item.driver?.user.phone,
     scheduledAt: item.deliveryScheduledAt,

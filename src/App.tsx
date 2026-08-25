@@ -17,6 +17,7 @@ import StockPage from "@/features/stock/StockPage";
 import StockEntryPage from "@/features/stock/StockEntryPage";
 import StockHistoryPage from "@/features/stock/StockHistoryPage";
 import LogisticsPage from "@/features/logistics/LogisticsPage";
+import DriversPage from "@/features/drivers/DriversPage";
 import CustomersListPage from "@/features/customers/CustomersListPage";
 import CustomerDetailPage from "@/features/customers/CustomerDetailPage";
 import ClaimsListPage from "@/features/claims/ClaimsListPage";
@@ -91,6 +92,7 @@ function AppContent() {
         <Route path="stock/inventory" element={<ProtectedRoute module="stock"><InventoryPage /></ProtectedRoute>} />
 
         <Route path="logistics" element={<ProtectedRoute module="logistics"><LogisticsPage /></ProtectedRoute>} />
+        <Route path="drivers" element={<ProtectedRoute module="logistics"><DriversPage /></ProtectedRoute>} />
 
         <Route path="customers" element={<ProtectedRoute module="customers"><CustomersListPage /></ProtectedRoute>} />
         <Route path="customers/:id" element={<ProtectedRoute module="customers"><CustomerDetailPage /></ProtectedRoute>} />

@@ -42,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'products', label: 'Catalogue', path: '/admin/products', icon: <Package size={20} />, module: 'products' },
   { key: 'promotions', label: 'Promotions', path: '/admin/promotions', icon: <Tag size={20} />, module: 'products' },
   { key: 'logistics', label: 'Logistique', path: '/admin/logistics', icon: <Truck size={20} />, module: 'logistics' },
+  { key: 'drivers', label: 'Livreurs', path: '/admin/drivers', icon: <Truck size={20} />, module: 'logistics' },
   { key: 'customers', label: 'Clients', path: '/admin/customers', icon: <Users size={20} />, module: 'customers' },
   { key: 'claims', label: 'Réclamations', path: '/admin/claims', icon: <AlertTriangle size={20} />, module: 'claims' },
   { key: 'refunds', label: 'Remboursements', path: '/admin/refunds', icon: <RotateCcw size={20} />, module: 'refunds' },

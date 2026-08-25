@@ -23,6 +23,7 @@ export default function LogisticsPage() {
   const [loadingDeliveries, setLoadingDeliveries] = useState(true);
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
   const [loadingDrivers, setLoadingDrivers] = useState(true);
+  const [assigningDriver, setAssigningDriver] = useState<string | null>(null);
 
   useEffect(() => {
     loadDeliveries();
@@ -50,6 +51,19 @@ export default function LogisticsPage() {
       console.error('Erreur lors du chargement des livreurs:', err);
     } finally {
       setLoadingDrivers(false);
+    }
+  };
+
+  const handleAssignDriver = async (orderId: string, driverId: string) => {
+    setAssigningDriver(orderId);
+    try {
+      await logisticsApiService.assignDriver(orderId, driverId);
+      await loadDeliveries(); // Recharger les livraisons après l'attribution
+    } catch (err) {
+      console.error('Erreur lors de l\'attribution du livreur:', err);
+      alert('Erreur lors de l\'attribution du livreur');
+    } finally {
+      setAssigningDriver(null);
     }
   };
 
@@ -143,7 +157,23 @@ export default function LogisticsPage() {
                           <td className="px-4 py-3 text-sm text-gray-600">{d.address}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">{d.zone || '-'}</td>
                           <td className="px-4 py-3 text-sm text-gray-700">
-                            {d.driverName || <span className="text-red-500 text-xs font-medium">Non assigné</span>}
+                            {assigningDriver === d.id ? (
+                              <Loader2 size={16} className="animate-spin text-[#FF8C00]" />
+                            ) : (
+                              <select
+                                value={d.driverId || ''}
+                                onChange={(e) => handleAssignDriver(d.id, e.target.value)}
+                                className="px-2 py-1 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-[#FF8C00] outline-none"
+                                disabled={loadingDrivers}
+                              >
+                                <option value="">Non assigné</option>
+                                {drivers.map((driver) => (
+                                  <option key={driver.id} value={driver.id}>
+                                    {driver.name}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{d.scheduledAt ? formatDate(d.scheduledAt) : '-'}</td>
                           <td className="px-4 py-3 text-center">
