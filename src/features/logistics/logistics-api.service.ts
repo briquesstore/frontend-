@@ -1,5 +1,7 @@
 import { apiClient } from '@/lib/api-client';
 
+export type DeliveryStatusFilter = 'ALL' | 'PENDING_ASSIGNMENT' | 'ASSIGNED' | 'IN_PROGRESS' | 'ARRIVED' | 'CODE_VERIFIED' | 'DELIVERED' | 'FAILED';
+
 export interface DeliveryRow {
   id: string;
   orderNumber: string;
@@ -11,8 +13,9 @@ export interface DeliveryRow {
   driverName?: string;
   driverPhone?: string;
   scheduledAt?: string;
-  status: 'ASSIGNED' | 'IN_PROGRESS' | 'ARRIVED' | 'CODE_VERIFIED' | 'DELIVERED' | 'FAILED';
+  status: 'PENDING_ASSIGNMENT' | 'ASSIGNED' | 'IN_PROGRESS' | 'ARRIVED' | 'CODE_VERIFIED' | 'DELIVERED' | 'FAILED';
   deliveryValidationCode?: string;
+  orderStatus?: string;
 }
 
 export interface DeliveryDetail {
@@ -49,6 +52,7 @@ export interface ZoneRow {
 interface BackendDelivery {
   id: string;
   orderNumber: string;
+  status: string;
   user: { firstName: string; lastName: string; phone?: string };
   deliveryAddress: {
     street?: string;
@@ -62,7 +66,7 @@ interface BackendDelivery {
     phone: string;
   };
   deliveryScheduledAt?: string;
-  deliveryStatus: string;
+  deliveryStatus: string | null;
   deliveryValidationCode?: string;
   deliveryCodeExpiresAt?: string;
   proof?: {
@@ -81,6 +85,9 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     item.deliveryAddress?.region,
   ].filter(Boolean);
   
+  // Si pas de deliveryStatus et pas de driver, c'est en attente d'assignation
+  const status = item.deliveryStatus || (item.driverId ? 'ASSIGNED' : 'PENDING_ASSIGNMENT');
+  
   return {
     id: item.id,
     orderNumber: item.orderNumber,
@@ -92,8 +99,9 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
     driverPhone: item.driver?.phone,
     scheduledAt: item.deliveryScheduledAt,
-    status: item.deliveryStatus as any,
+    status: status as DeliveryRow['status'],
     deliveryValidationCode: item.deliveryValidationCode,
+    orderStatus: item.status,
   };
 }
 
@@ -103,6 +111,8 @@ function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
     item.deliveryAddress?.city,
     item.deliveryAddress?.region,
   ].filter(Boolean);
+  
+  const status = item.deliveryStatus || (item.driverId ? 'ASSIGNED' : 'PENDING_ASSIGNMENT');
   
   return {
     id: item.id,
@@ -114,7 +124,7 @@ function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
     driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
     driverPhone: item.driver?.phone,
     scheduledAt: item.deliveryScheduledAt,
-    status: item.deliveryStatus,
+    status,
     deliveryValidationCode: item.deliveryValidationCode,
     deliveryCodeExpiresAt: item.deliveryCodeExpiresAt,
     proof: item.proof,
