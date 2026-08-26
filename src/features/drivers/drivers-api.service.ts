@@ -2,20 +2,16 @@ import api from '@/core/api/client';
 
 export interface Driver {
   id: string;
-  userId: string;
+  phone: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
   vehicleType: string;
   capacity?: number;
   zones?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
   orders?: {
     id: string;
     orderNumber: string;
@@ -25,7 +21,10 @@ export interface Driver {
 }
 
 export interface CreateDriverDto {
-  userId: string;
+  phone: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
   vehicleType: string;
   capacity?: number;
   zones?: string[];

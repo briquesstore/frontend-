@@ -170,7 +170,7 @@ export default function LogisticsPage() {
                                 <option value="">Non assigné</option>
                                 {drivers.map((driver) => (
                                   <option key={driver.id} value={driver.id}>
-                                    {driver.user.firstName} {driver.user.lastName}
+                                    {driver.firstName} {driver.lastName}
                                   </option>
                                 ))}
                               </select>
@@ -230,11 +230,11 @@ export default function LogisticsPage() {
                             <Truck size={14} />
                           </div>
                           <span className="text-sm font-medium text-gray-900">
-                            {d.user.firstName} {d.user.lastName}
+                            {d.firstName} {d.lastName}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{d.user.phone}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{d.phone}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{d.vehicleType || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{d.capacity ? `${d.capacity} kg` : '-'}</td>
                       <td className="px-4 py-3">

@@ -28,10 +28,9 @@ export default function DriversPage() {
 
   const filteredDrivers = drivers.filter(
     (driver) =>
-      driver.user.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      driver.user.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      driver.user.phone?.includes(search) ||
-      driver.user.email?.toLowerCase().includes(search.toLowerCase()),
+      driver.firstName.toLowerCase().includes(search.toLowerCase()) ||
+      driver.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      driver.phone?.includes(search),
   );
 
   return (
@@ -88,16 +87,16 @@ export default function DriversPage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {driver.user.firstName} {driver.user.lastName}
+                            {driver.firstName} {driver.lastName}
                           </p>
-                          <p className="text-xs text-gray-400">{driver.user.email}</p>
+                          <p className="text-xs text-gray-400">{driver.phone}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 text-sm text-gray-600">
                         <Phone size={14} className="text-gray-400" />
-                        {driver.user.phone || '—'}
+                        {driver.phone || '—'}
                       </div>
                     </td>
                     <td className="px-4 py-3">

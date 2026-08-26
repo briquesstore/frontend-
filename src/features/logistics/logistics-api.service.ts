@@ -57,7 +57,9 @@ interface BackendDelivery {
   };
   driverId?: string;
   driver?: {
-    user: { firstName: string; lastName: string; phone?: string };
+    firstName: string;
+    lastName: string;
+    phone: string;
   };
   deliveryScheduledAt?: string;
   deliveryStatus: string;
@@ -87,8 +89,8 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     address: addressParts.join(', ') || 'Non spécifiée',
     zone: item.deliveryAddress?.region,
     driverId: item.driverId,
-    driverName: item.driver ? `${item.driver.user.firstName} ${item.driver.user.lastName}`.trim() : undefined,
-    driverPhone: item.driver?.user.phone,
+    driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
+    driverPhone: item.driver?.phone,
     scheduledAt: item.deliveryScheduledAt,
     status: item.deliveryStatus as any,
     deliveryValidationCode: item.deliveryValidationCode,
@@ -109,8 +111,8 @@ function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
     phone: item.user.phone,
     address: addressParts.join(', ') || 'Non spécifiée',
     zone: item.deliveryAddress?.region,
-    driverName: item.driver ? `${item.driver.user.firstName} ${item.driver.user.lastName}`.trim() : undefined,
-    driverPhone: item.driver?.user.phone,
+    driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
+    driverPhone: item.driver?.phone,
     scheduledAt: item.deliveryScheduledAt,
     status: item.deliveryStatus,
     deliveryValidationCode: item.deliveryValidationCode,
