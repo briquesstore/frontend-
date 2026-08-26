@@ -8,7 +8,14 @@ export interface DeliveryRow {
   customerName: string;
   phone?: string;
   address: string;
+  city?: string;
+  commune?: string;
   zone?: string;
+  projectName?: string;
+  contactName?: string;
+  contactPhone?: string;
+  landmarks?: string;
+  driverInstructions?: string;
   driverId?: string;
   driverName?: string;
   driverPhone?: string;
@@ -16,6 +23,7 @@ export interface DeliveryRow {
   status: 'PENDING_ASSIGNMENT' | 'ASSIGNED' | 'IN_PROGRESS' | 'ARRIVED' | 'CODE_VERIFIED' | 'DELIVERED' | 'FAILED';
   deliveryValidationCode?: string;
   orderStatus?: string;
+  deliveryNotes?: string;
 }
 
 export interface DeliveryDetail {
@@ -54,10 +62,18 @@ interface BackendDelivery {
   orderNumber: string;
   status: string;
   user: { firstName: string; lastName: string; phone?: string };
-  deliveryAddress: {
-    street?: string;
-    city?: string;
-    region?: string;
+  deliveryAddress?: {
+    id: string;
+    name: string;
+    fullAddress: string;
+    city: string;
+    commune?: string;
+    landmarks?: string;
+    contactName: string;
+    contactPhone: string;
+    driverInstructions?: string;
+    gpsLat?: number;
+    gpsLng?: number;
   };
   driverId?: string;
   driver?: {
@@ -69,6 +85,7 @@ interface BackendDelivery {
   deliveryStatus: string | null;
   deliveryValidationCode?: string;
   deliveryCodeExpiresAt?: string;
+  deliveryNotes?: string;
   proof?: {
     recipientName?: string;
     recipientPhone?: string;
@@ -79,11 +96,7 @@ interface BackendDelivery {
 }
 
 function mapDelivery(item: BackendDelivery): DeliveryRow {
-  const addressParts = [
-    item.deliveryAddress?.street,
-    item.deliveryAddress?.city,
-    item.deliveryAddress?.region,
-  ].filter(Boolean);
+  const addr = item.deliveryAddress;
   
   // Si pas de deliveryStatus et pas de driver, c'est en attente d'assignation
   const status = item.deliveryStatus || (item.driverId ? 'ASSIGNED' : 'PENDING_ASSIGNMENT');
@@ -93,8 +106,15 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     orderNumber: item.orderNumber,
     customerName: `${item.user.firstName} ${item.user.lastName}`.trim(),
     phone: item.user.phone,
-    address: addressParts.join(', ') || 'Non spécifiée',
-    zone: item.deliveryAddress?.region,
+    address: addr?.fullAddress || 'Non spécifiée',
+    city: addr?.city,
+    commune: addr?.commune,
+    zone: addr?.city,
+    projectName: addr?.name,
+    contactName: addr?.contactName,
+    contactPhone: addr?.contactPhone,
+    landmarks: addr?.landmarks,
+    driverInstructions: addr?.driverInstructions,
     driverId: item.driverId,
     driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
     driverPhone: item.driver?.phone,
@@ -102,16 +122,12 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
     status: status as DeliveryRow['status'],
     deliveryValidationCode: item.deliveryValidationCode,
     orderStatus: item.status,
+    deliveryNotes: item.deliveryNotes,
   };
 }
 
 function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
-  const addressParts = [
-    item.deliveryAddress?.street,
-    item.deliveryAddress?.city,
-    item.deliveryAddress?.region,
-  ].filter(Boolean);
-  
+  const addr = item.deliveryAddress;
   const status = item.deliveryStatus || (item.driverId ? 'ASSIGNED' : 'PENDING_ASSIGNMENT');
   
   return {
@@ -119,8 +135,8 @@ function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
     orderNumber: item.orderNumber,
     customerName: `${item.user.firstName} ${item.user.lastName}`.trim(),
     phone: item.user.phone,
-    address: addressParts.join(', ') || 'Non spécifiée',
-    zone: item.deliveryAddress?.region,
+    address: addr?.fullAddress || 'Non spécifiée',
+    zone: addr?.city,
     driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
     driverPhone: item.driver?.phone,
     scheduledAt: item.deliveryScheduledAt,

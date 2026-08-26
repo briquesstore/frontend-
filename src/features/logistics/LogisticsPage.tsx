@@ -238,8 +238,8 @@ export default function LogisticsPage() {
                     <tr className="border-b border-gray-100">
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Commande</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Client</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Adresse</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Zone</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Lieu de livraison</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Contact sur place</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Livreur</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date prévue</th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Statut</th>
@@ -260,8 +260,25 @@ export default function LogisticsPage() {
                             <p className="text-sm font-medium text-gray-900">{d.customerName}</p>
                             {d.phone && <p className="text-xs text-gray-500">{d.phone}</p>}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={d.address}>{d.address}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{d.zone || '-'}</td>
+                          <td className="px-4 py-3 max-w-[250px]">
+                            {d.projectName && (
+                              <p className="text-sm font-medium text-gray-900">{d.projectName}</p>
+                            )}
+                            <p className="text-sm text-gray-600 truncate" title={d.address}>{d.address}</p>
+                            {d.city && (
+                              <p className="text-xs text-gray-500">{d.city}{d.commune ? `, ${d.commune}` : ''}</p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {d.contactName ? (
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{d.contactName}</p>
+                                {d.contactPhone && <p className="text-xs text-gray-500">{d.contactPhone}</p>}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">-</span>
+                            )}
+                          </td>
                           <td className="px-4 py-3">
                             {d.driverName ? (
                               <div>
@@ -320,11 +337,50 @@ export default function LogisticsPage() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500">Commande</p>
-                <p className="text-lg font-semibold text-gray-900">{assignModal.delivery.orderNumber}</p>
-                <p className="text-sm text-gray-600 mt-1">{assignModal.delivery.customerName}</p>
-                <p className="text-sm text-gray-500 mt-1">{assignModal.delivery.address}</p>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-medium">Commande</p>
+                  <p className="text-lg font-semibold text-gray-900">{assignModal.delivery.orderNumber}</p>
+                </div>
+                <div className="border-t border-gray-200 pt-3">
+                  <p className="text-xs text-gray-500 uppercase font-medium">Client</p>
+                  <p className="text-sm font-medium text-gray-900">{assignModal.delivery.customerName}</p>
+                  {assignModal.delivery.phone && (
+                    <p className="text-sm text-gray-600">{assignModal.delivery.phone}</p>
+                  )}
+                </div>
+                <div className="border-t border-gray-200 pt-3">
+                  <p className="text-xs text-gray-500 uppercase font-medium">Lieu de livraison</p>
+                  {assignModal.delivery.projectName && (
+                    <p className="text-sm font-semibold text-[#FF8C00]">{assignModal.delivery.projectName}</p>
+                  )}
+                  <p className="text-sm text-gray-900">{assignModal.delivery.address}</p>
+                  {assignModal.delivery.city && (
+                    <p className="text-sm text-gray-600">
+                      {assignModal.delivery.city}{assignModal.delivery.commune ? `, ${assignModal.delivery.commune}` : ''}
+                    </p>
+                  )}
+                  {assignModal.delivery.landmarks && (
+                    <p className="text-sm text-gray-500 italic mt-1">📍 {assignModal.delivery.landmarks}</p>
+                  )}
+                </div>
+                {(assignModal.delivery.contactName || assignModal.delivery.contactPhone) && (
+                  <div className="border-t border-gray-200 pt-3">
+                    <p className="text-xs text-gray-500 uppercase font-medium">Contact sur place</p>
+                    {assignModal.delivery.contactName && (
+                      <p className="text-sm font-medium text-gray-900">{assignModal.delivery.contactName}</p>
+                    )}
+                    {assignModal.delivery.contactPhone && (
+                      <p className="text-sm text-gray-600">{assignModal.delivery.contactPhone}</p>
+                    )}
+                  </div>
+                )}
+                {assignModal.delivery.driverInstructions && (
+                  <div className="border-t border-gray-200 pt-3">
+                    <p className="text-xs text-gray-500 uppercase font-medium">Instructions livreur</p>
+                    <p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded mt-1">{assignModal.delivery.driverInstructions}</p>
+                  </div>
+                )}
               </div>
 
               <div>
