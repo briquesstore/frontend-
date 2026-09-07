@@ -1,15 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+
+interface Product {
+  id: string;
+  name: string;
+  reference: string;
+}
 
 interface PromotionFormData {
   title: string;
   description: string;
-  type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_DELIVERY';
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_DELIVERY' | 'FREE_PRODUCT';
   value: number;
   code: string;
   minAmount?: number;
   maxDiscount?: number;
+  freeProductId?: string;
+  freeProductQty?: number;
+  minQuantity?: number;
   startDate: string;
   endDate: string;
   isActive: boolean;
@@ -26,6 +35,8 @@ interface Props {
 export default function PromotionFormModal({ isOpen, onClose, onSuccess, editData }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   
   const [form, setForm] = useState<PromotionFormData>({
     title: editData?.title || '',
@@ -35,23 +46,53 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
     code: editData?.code || '',
     minAmount: editData?.minAmount || undefined,
     maxDiscount: editData?.maxDiscount || undefined,
+    freeProductId: editData?.freeProductId || undefined,
+    freeProductQty: editData?.freeProductQty || 1,
+    minQuantity: editData?.minQuantity || undefined,
     startDate: editData?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
     endDate: editData?.endDate?.split('T')[0] || '',
     isActive: editData?.isActive ?? true,
     usageLimit: editData?.usageLimit || undefined,
   });
 
+  // Load products for FREE_PRODUCT type
+  useEffect(() => {
+    if (form.type === 'FREE_PRODUCT' && products.length === 0) {
+      setLoadingProducts(true);
+      apiClient.get<{ data: Product[] }>('/admin/products?pageSize=100')
+        .then(({ data }) => setProducts(data.data || []))
+        .catch(console.error)
+        .finally(() => setLoadingProducts(false));
+    }
+  }, [form.type, products.length]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validation for FREE_PRODUCT
+    if (form.type === 'FREE_PRODUCT') {
+      if (!form.freeProductId) {
+        setError('Veuillez sélectionner le produit à offrir');
+        return;
+      }
+      if (!form.minQuantity || form.minQuantity < 1) {
+        setError('Veuillez définir la quantité minimum pour déclencher l\'offre');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       const payload = {
         ...form,
-        value: Number(form.value),
+        value: form.type === 'FREE_PRODUCT' ? 0 : Number(form.value),
         minAmount: form.minAmount ? Number(form.minAmount) : undefined,
         maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : undefined,
+        freeProductId: form.type === 'FREE_PRODUCT' ? form.freeProductId : undefined,
+        freeProductQty: form.type === 'FREE_PRODUCT' ? Number(form.freeProductQty) : undefined,
+        minQuantity: form.type === 'FREE_PRODUCT' ? Number(form.minQuantity) : undefined,
         usageLimit: form.usageLimit ? Number(form.usageLimit) : undefined,
         startDate: new Date(form.startDate).toISOString(),
         endDate: new Date(form.endDate).toISOString(),
@@ -137,10 +178,11 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
                 <option value="PERCENTAGE">Pourcentage (%)</option>
                 <option value="FIXED_AMOUNT">Montant fixe (FCFA)</option>
                 <option value="FREE_DELIVERY">Livraison gratuite</option>
+                <option value="FREE_PRODUCT">🎁 Produit offert</option>
               </select>
             </div>
 
-            {form.type !== 'FREE_DELIVERY' && (
+            {(form.type === 'PERCENTAGE' || form.type === 'FIXED_AMOUNT') && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Valeur * {form.type === 'PERCENTAGE' ? '(%)' : '(FCFA)'}
@@ -157,6 +199,61 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
               </div>
             )}
           </div>
+
+          {/* FREE_PRODUCT specific fields */}
+          {form.type === 'FREE_PRODUCT' && (
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
+              <h4 className="font-semibold text-orange-800 flex items-center gap-2">
+                🎁 Configuration du produit offert
+              </h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Produit à offrir *</label>
+                {loadingProducts ? (
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <Loader2 size={16} className="animate-spin" /> Chargement des produits...
+                  </div>
+                ) : (
+                  <select
+                    value={form.freeProductId || ''}
+                    onChange={(e) => setForm({ ...form, freeProductId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none"
+                  >
+                    <option value="">-- Sélectionner un produit --</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.reference})</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantité offerte *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.freeProductQty || 1}
+                    onChange={(e) => setForm({ ...form, freeProductQty: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none"
+                    placeholder="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Qté min. pour déclencher *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.minQuantity || ''}
+                    onChange={(e) => setForm({ ...form, minQuantity: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none"
+                    placeholder="Ex: 250"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Ex: 250 briques commandées = 1 sac ciment offert</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Code promo *</label>

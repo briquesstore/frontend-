@@ -12,10 +12,14 @@ interface Promotion {
   code: string;
   title: string;
   description: string;
-  type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_DELIVERY';
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_DELIVERY' | 'FREE_PRODUCT';
   value: number;
   minAmount?: number;
   maxDiscount?: number;
+  freeProductId?: string;
+  freeProductQty?: number;
+  minQuantity?: number;
+  freeProduct?: { id: string; name: string; reference: string };
   usageLimit?: number;
   usageCount: number;
   isActive: boolean;
@@ -191,7 +195,7 @@ export default function PromotionsPage() {
                 <h3 className="font-semibold text-gray-900 text-sm">{promo.title}</h3>
                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">{promo.description}</p>
 
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-mono font-bold text-gray-900">{promo.code}</span>
                   {promo.type === 'PERCENTAGE' && (
                     <span className="text-lg font-bold text-[#FF8C00]">-{promo.value}%</span>
@@ -201,6 +205,11 @@ export default function PromotionsPage() {
                   )}
                   {promo.type === 'FREE_DELIVERY' && (
                     <span className="text-sm font-bold text-[#FF8C00]">Livraison gratuite</span>
+                  )}
+                  {promo.type === 'FREE_PRODUCT' && (
+                    <span className="text-sm font-bold text-[#FF8C00]">
+                      🎁 {promo.freeProductQty}x {promo.freeProduct?.name || 'Produit'} offert
+                    </span>
                   )}
                 </div>
 
@@ -221,6 +230,12 @@ export default function PromotionsPage() {
                   {promo.maxDiscount && promo.type === 'PERCENTAGE' && (
                     <div className="flex items-center gap-2">
                       <span>Max réduction : {formatCFA(promo.maxDiscount)}</span>
+                    </div>
+                  )}
+                  {promo.type === 'FREE_PRODUCT' && promo.minQuantity && (
+                    <div className="flex items-center gap-2">
+                      <Gift size={12} />
+                      <span>Dès {promo.minQuantity} unités commandées</span>
                     </div>
                   )}
                 </div>
