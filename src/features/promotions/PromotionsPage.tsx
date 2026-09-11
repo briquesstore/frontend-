@@ -58,8 +58,8 @@ export default function PromotionsPage() {
   const fetchPromotions = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await apiClient.get<Promotion[]>('/promotions');
-      setPromotions(data);
+      const { data } = await apiClient.get<{ data: Promotion[]; total: number }>('/promotions');
+      setPromotions(data.data || []);
     } catch (err) {
       console.error('Erreur chargement promotions:', err);
     } finally {
