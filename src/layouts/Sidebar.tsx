@@ -17,6 +17,7 @@ import {
   Bell,
   RotateCcw,
   MessageCircle,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
@@ -46,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'customers', label: 'Clients', path: '/admin/customers', icon: <Users size={20} />, module: 'customers' },
   { key: 'claims', label: 'Réclamations', path: '/admin/claims', icon: <AlertTriangle size={20} />, module: 'claims' },
   { key: 'refunds', label: 'Remboursements', path: '/admin/refunds', icon: <RotateCcw size={20} />, module: 'refunds' },
+  { key: 'waitlist', label: 'Liste d\'attente', path: '/admin/waitlist', icon: <Mail size={20} />, module: 'waitlist' },
   { key: 'notifications', label: 'Notifications Push', path: '/admin/notifications', icon: <Bell size={20} />, module: 'settings' },
   { key: 'whatsapp', label: 'WhatsApp', path: '/admin/whatsapp', icon: <MessageCircle size={20} />, module: 'settings' },
   { key: 'reports', label: 'Rapports', path: '/admin/reports', icon: <LineChart size={20} />, module: 'reports' },

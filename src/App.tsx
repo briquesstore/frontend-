@@ -34,6 +34,7 @@ import InvoicesPage from "@/features/invoices/InvoicesPage";
 import InventoryPage from "@/features/stock/InventoryPage";
 import PushNotificationsPage from "@/features/notifications/PushNotificationsPage";
 import WhatsAppPage from "@/features/whatsapp/WhatsAppPage";
+import WaitlistPage from "@/features/waitlist/WaitlistPage";
 import { useAuthStore } from "@/core/stores/auth.store";
 
 const queryClient = new QueryClient({
@@ -107,6 +108,7 @@ function AppContent() {
 
         <Route path="payments" element={<ProtectedRoute module="orders"><PaymentsPage /></ProtectedRoute>} />
         <Route path="promotions" element={<ProtectedRoute module="products"><PromotionsPage /></ProtectedRoute>} />
+        <Route path="waitlist" element={<ProtectedRoute module="waitlist"><WaitlistPage /></ProtectedRoute>} />
         <Route path="invoices" element={<ProtectedRoute module="orders"><InvoicesPage /></ProtectedRoute>} />
         <Route path="notifications" element={<ProtectedRoute module="settings"><PushNotificationsPage /></ProtectedRoute>} />
         <Route path="whatsapp" element={<ProtectedRoute module="settings"><WhatsAppPage /></ProtectedRoute>} />
