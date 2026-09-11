@@ -19,6 +19,7 @@ interface Promotion {
   freeProductId?: string;
   freeProductQty?: number;
   minQuantity?: number;
+  freeProductName?: string;
   freeProduct?: { id: string; name: string; reference: string };
   usageLimit?: number;
   usageCount: number;
@@ -208,7 +209,7 @@ export default function PromotionsPage() {
                   )}
                   {promo.type === 'FREE_PRODUCT' && (
                     <span className="text-sm font-bold text-[#FF8C00]">
-                      🎁 {promo.freeProductQty}x {promo.freeProduct?.name || 'Produit'} offert
+                      {promo.freeProductQty}x {(promo.freeProduct?.name || promo.freeProductName) || 'Produit'} offert
                     </span>
                   )}
                 </div>

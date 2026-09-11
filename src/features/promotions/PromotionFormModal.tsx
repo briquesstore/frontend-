@@ -19,6 +19,7 @@ interface PromotionFormData {
   freeProductId?: string;
   freeProductQty?: number;
   minQuantity?: number;
+  freeProductName?: string;
   startDate: string;
   endDate: string;
   isActive: boolean;
@@ -49,6 +50,7 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
     freeProductId: editData?.freeProductId || undefined,
     freeProductQty: editData?.freeProductQty || 1,
     minQuantity: editData?.minQuantity || undefined,
+    freeProductName: editData?.freeProductName || undefined,
     startDate: editData?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
     endDate: editData?.endDate?.split('T')[0] || '',
     isActive: editData?.isActive ?? true,
@@ -72,8 +74,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
 
     // Validation for FREE_PRODUCT
     if (form.type === 'FREE_PRODUCT') {
-      if (!form.freeProductId) {
-        setError('Veuillez sélectionner le produit à offrir');
+      if (!form.freeProductId && !form.freeProductName?.trim()) {
+        setError('Veuillez sélectionner un produit existant ou saisir le nom du produit offert');
         return;
       }
       if (!form.minQuantity || form.minQuantity < 1) {
@@ -90,9 +92,10 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
         value: form.type === 'FREE_PRODUCT' ? 0 : Number(form.value),
         minAmount: form.minAmount ? Number(form.minAmount) : undefined,
         maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : undefined,
-        freeProductId: form.type === 'FREE_PRODUCT' ? form.freeProductId : undefined,
+        freeProductId: form.type === 'FREE_PRODUCT' ? (form.freeProductId || undefined) : undefined,
         freeProductQty: form.type === 'FREE_PRODUCT' ? Number(form.freeProductQty) : undefined,
         minQuantity: form.type === 'FREE_PRODUCT' ? Number(form.minQuantity) : undefined,
+        freeProductName: form.type === 'FREE_PRODUCT' ? (form.freeProductName?.trim() || undefined) : undefined,
         usageLimit: form.usageLimit ? Number(form.usageLimit) : undefined,
         startDate: new Date(form.startDate).toISOString(),
         endDate: new Date(form.endDate).toISOString(),
@@ -225,6 +228,18 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
                     ))}
                   </select>
                 )}
+                <p className="text-xs text-gray-500 mt-1">Laissez vide et renseignez le nom ci-dessous si le produit n&apos;existe pas dans le catalogue.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom du produit offert (saisie libre)</label>
+                <input
+                  type="text"
+                  value={form.freeProductName || ''}
+                  onChange={(e) => setForm({ ...form, freeProductName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none"
+                  placeholder="Ex: Sac de ciment"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
