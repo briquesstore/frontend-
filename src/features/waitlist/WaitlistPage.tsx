@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/api-client';
 interface WaitlistEntry {
   id: string;
   email: string;
+  name?: string;
+  phone?: string;
   source: string;
   createdAt: string;
 }
@@ -32,9 +34,9 @@ export default function WaitlistPage() {
   }, [fetchEntries]);
 
   const exportCsv = () => {
-    const header = 'Email,Source,Date\n';
+    const header = 'Email,Nom,Telephone,Source,Date\n';
     const rows = entries
-      .map((e) => `${e.email},${e.source},${new Date(e.createdAt).toISOString()}`)
+      .map((e) => `${e.email},${e.name || ''},${e.phone || ''},${e.source},${new Date(e.createdAt).toISOString()}`)
       .join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -86,6 +88,8 @@ export default function WaitlistPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 font-semibold text-gray-700">Email</th>
+                <th className="px-6 py-3 font-semibold text-gray-700">Nom</th>
+                <th className="px-6 py-3 font-semibold text-gray-700">Téléphone</th>
                 <th className="px-6 py-3 font-semibold text-gray-700">Source</th>
                 <th className="px-6 py-3 font-semibold text-gray-700">Date d&apos;inscription</th>
               </tr>
@@ -93,14 +97,14 @@ export default function WaitlistPage() {
             <tbody className="divide-y divide-gray-100">
               {loading && entries.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Chargement...
                   </td>
                 </tr>
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
                     <Mail className="w-8 h-8 mx-auto mb-3 text-gray-300" />
                     Aucune inscription pour le moment.
                   </td>
@@ -109,6 +113,8 @@ export default function WaitlistPage() {
                 entries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">{entry.email}</td>
+                    <td className="px-6 py-4 text-gray-600">{entry.name || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600">{entry.phone || '-'}</td>
                     <td className="px-6 py-4 text-gray-600">{entry.source}</td>
                     <td className="px-6 py-4 text-gray-600">{new Date(entry.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</td>
                   </tr>
