@@ -58,7 +58,7 @@ export default function PromotionsPage() {
   const fetchPromotions = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await apiClient.get<Promotion[]>('/admin/promotions');
+      const { data } = await apiClient.get<Promotion[]>('/promotions');
       setPromotions(data);
     } catch (err) {
       console.error('Erreur chargement promotions:', err);
@@ -74,7 +74,7 @@ export default function PromotionsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette promotion ?')) return;
     try {
-      await apiClient.delete(`/admin/promotions/${id}`);
+      await apiClient.delete(`/promotions/${id}`);
       fetchPromotions();
     } catch (err: any) {
       alert(err.message || 'Erreur lors de la suppression');

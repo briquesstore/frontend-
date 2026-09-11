@@ -61,7 +61,7 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
   useEffect(() => {
     if (form.type === 'FREE_PRODUCT' && products.length === 0) {
       setLoadingProducts(true);
-      apiClient.get<{ data: Product[] }>('/admin/products?pageSize=100')
+      apiClient.get<{ data: Product[] }>('/products?pageSize=100')
         .then(({ data }) => setProducts(data.data || []))
         .catch(console.error)
         .finally(() => setLoadingProducts(false));
@@ -102,9 +102,9 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
       };
 
       if (editData?.id) {
-        await apiClient.patch(`/admin/promotions/${editData.id}`, payload);
+        await apiClient.patch(`/promotions/${editData.id}`, payload);
       } else {
-        await apiClient.post('/admin/promotions', payload);
+        await apiClient.post('/promotions', payload);
       }
 
       onSuccess();
