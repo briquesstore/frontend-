@@ -17,6 +17,7 @@ import {
   Bell,
   RotateCcw,
   MessageCircle,
+  MessageSquare,
   Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'waitlist', label: 'Liste d\'attente', path: '/admin/waitlist', icon: <Mail size={20} />, module: 'waitlist' },
   { key: 'notifications', label: 'Notifications Push', path: '/admin/notifications', icon: <Bell size={20} />, module: 'settings' },
   { key: 'whatsapp', label: 'WhatsApp', path: '/admin/whatsapp', icon: <MessageCircle size={20} />, module: 'settings' },
+  { key: 'messaging', label: 'Messagerie', path: '/admin/messaging', icon: <MessageSquare size={20} />, module: 'messaging' },
   { key: 'reports', label: 'Rapports', path: '/admin/reports', icon: <LineChart size={20} />, module: 'reports' },
   { key: 'settings', label: 'Paramètres', path: '/admin/settings', icon: <Settings size={20} />, module: 'settings' },
 ];

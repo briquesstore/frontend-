@@ -34,6 +34,7 @@ import InvoicesPage from "@/features/invoices/InvoicesPage";
 import InventoryPage from "@/features/stock/InventoryPage";
 import PushNotificationsPage from "@/features/notifications/PushNotificationsPage";
 import WhatsAppPage from "@/features/whatsapp/WhatsAppPage";
+import MessagingPage from "@/features/messaging/MessagingPage";
 import WaitlistPage from "@/features/waitlist/WaitlistPage";
 import { useAuthStore } from "@/core/stores/auth.store";
 
@@ -112,6 +113,7 @@ function AppContent() {
         <Route path="invoices" element={<ProtectedRoute module="orders"><InvoicesPage /></ProtectedRoute>} />
         <Route path="notifications" element={<ProtectedRoute module="settings"><PushNotificationsPage /></ProtectedRoute>} />
         <Route path="whatsapp" element={<ProtectedRoute module="settings"><WhatsAppPage /></ProtectedRoute>} />
+        <Route path="messaging" element={<ProtectedRoute module="messaging"><MessagingPage /></ProtectedRoute>} />
 
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
