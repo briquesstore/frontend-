@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import ConversationList from './ConversationList';
 import MessageThread from './MessageThread';
+import ClientInfoPanel from './ClientInfoPanel';
 import type { Conversation } from './types';
 
 export default function MessagingPage() {
@@ -34,11 +35,7 @@ export default function MessagingPage() {
 
       {/* Colonne 3 : infos client */}
       <div className="w-72 flex-shrink-0 border-l border-gray-200 bg-white">
-        {selected && (
-          <div className="p-4 text-sm text-gray-500">
-            Infos client — {selected.displayName || selected.phone}
-          </div>
-        )}
+        {selected && <ClientInfoPanel conversation={selected} />}
       </div>
     </div>
   );
