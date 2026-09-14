@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ChevronUp, Clock } from 'lucide-react';
 import { messagingApi } from './messaging.api';
 import MessageBubble from './MessageBubble';
+import MessageInput from './MessageInput';
 import type { Conversation, Message } from './types';
 
 interface Props {
@@ -149,6 +150,19 @@ export default function MessageThread({ conversation }: Props) {
 
         <div ref={bottomRef} />
       </div>
+
+      {/* Zone de saisie (texte libre ou template selon fenêtre 24h) */}
+      <MessageInput
+        conversation={conversation}
+        onSent={() => {
+          queryClient.invalidateQueries({
+            queryKey: ['messaging', 'conversation', conversation.id],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ['messaging', 'conversations'],
+          });
+        }}
+      />
     </div>
   );
 }
