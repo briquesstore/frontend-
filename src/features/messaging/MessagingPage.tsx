@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import ConversationList from './ConversationList';
+import MessageThread from './MessageThread';
 import type { Conversation } from './types';
 
 export default function MessagingPage() {
@@ -19,9 +20,7 @@ export default function MessagingPage() {
       {/* Colonne 2 : fil de messages */}
       <div className="flex-1 flex flex-col bg-[#ECE5DD]">
         {selected ? (
-          <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
-            Fil de messages — {selected.displayName || selected.phone}
-          </div>
+          <MessageThread conversation={selected} />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
             <MessageSquare className="w-16 h-16 mb-4" />
