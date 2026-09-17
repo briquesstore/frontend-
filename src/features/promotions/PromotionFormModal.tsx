@@ -6,6 +6,7 @@ interface Product {
   id: string;
   name: string;
   reference: string;
+  status?: 'ACTIVE' | 'HIDDEN' | 'ARCHIVED';
 }
 
 interface PromotionFormData {
@@ -224,7 +225,9 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
                   >
                     <option value="">-- Sélectionner un produit --</option>
                     {products.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.reference})</option>
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.reference}){p.status && p.status !== 'ACTIVE' ? ' — hors vente' : ''}
+                      </option>
                     ))}
                   </select>
                 )}

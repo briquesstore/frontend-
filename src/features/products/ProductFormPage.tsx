@@ -530,7 +530,7 @@ export default function ProductFormPage() {
                 <div className="space-y-3">
                   {([
                     { value: 'ACTIVE' as ProductStatus, label: 'Actif', desc: 'Visible dans le catalogue client et disponible à la vente', color: 'border-green-500 bg-green-50' },
-                    { value: 'HIDDEN' as ProductStatus, label: 'Masqué', desc: 'Non visible pour les clients, mais toujours en stock', color: 'border-yellow-500 bg-yellow-50' },
+                    { value: 'HIDDEN' as ProductStatus, label: 'Masqué', desc: 'Non visible pour les clients — utilisable comme produit offert (promotion)', color: 'border-yellow-500 bg-yellow-50' },
                     { value: 'ARCHIVED' as ProductStatus, label: 'Archivé', desc: 'Retiré du catalogue, conservé pour l\'historique', color: 'border-gray-400 bg-gray-50' },
                   ]).map((option) => (
                     <button
