@@ -61,7 +61,7 @@ interface BackendDelivery {
   id: string;
   orderNumber: string;
   status: string;
-  user: { firstName: string; lastName: string; phone?: string };
+  user?: { firstName: string; lastName: string; phone?: string };
   deliveryAddress?: {
     id: string;
     name: string;
@@ -104,8 +104,8 @@ function mapDelivery(item: BackendDelivery): DeliveryRow {
   return {
     id: item.id,
     orderNumber: item.orderNumber,
-    customerName: `${item.user.firstName} ${item.user.lastName}`.trim(),
-    phone: item.user.phone,
+    customerName: item.user ? `${item.user.firstName} ${item.user.lastName}`.trim() : '—',
+    phone: item.user?.phone,
     address: addr?.fullAddress || 'Non spécifiée',
     city: addr?.city,
     commune: addr?.commune,
@@ -133,8 +133,8 @@ function mapDeliveryDetail(item: BackendDelivery): DeliveryDetail {
   return {
     id: item.id,
     orderNumber: item.orderNumber,
-    customerName: `${item.user.firstName} ${item.user.lastName}`.trim(),
-    phone: item.user.phone,
+    customerName: item.user ? `${item.user.firstName} ${item.user.lastName}`.trim() : '—',
+    phone: item.user?.phone,
     address: addr?.fullAddress || 'Non spécifiée',
     zone: addr?.city,
     driverName: item.driver ? `${item.driver.firstName} ${item.driver.lastName}`.trim() : undefined,
