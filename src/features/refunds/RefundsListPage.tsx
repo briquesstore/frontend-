@@ -86,17 +86,52 @@ export default function RefundsListPage() {
 
       {/* KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">À traiter</p>
-          <p className="text-2xl font-bold text-orange-600 mt-1">{manualCount}</p>
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Demandes à traiter</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{manualCount}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-orange-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
+                Action requise par l'équipe
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center flex-shrink-0">
+              <RotateCcw size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Total affiché</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{formatCFA(totalAmount)}</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Montant total filtré</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCFA(totalAmount)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-gray-500">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
+                Sur les éléments affichés
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center flex-shrink-0">
+              <Download size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Remboursements</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{filtered.length}</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Remboursements listés</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{filtered.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                Dossiers répertoriés
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle size={20} />
+            </div>
+          </div>
         </div>
       </div>
 

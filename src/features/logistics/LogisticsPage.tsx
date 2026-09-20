@@ -255,42 +255,97 @@ export default function LogisticsPage() {
             <button
               onClick={() => setStatusFilter('PENDING_ASSIGNMENT')}
               className={cn(
-                'bg-white rounded-xl border p-4 text-left transition-all',
-                statusFilter === 'PENDING_ASSIGNMENT' ? 'border-yellow-400 ring-2 ring-yellow-100' : 'border-gray-100 hover:border-yellow-200'
+                'bg-white rounded-xl border p-5 text-left transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer',
+                statusFilter === 'PENDING_ASSIGNMENT'
+                  ? 'border-amber-400 ring-2 ring-amber-200/60 shadow-amber-50'
+                  : 'border-gray-200/80 hover:border-amber-300'
               )}
             >
-              <p className="text-sm text-gray-500">À assigner</p>
-              <p className="text-2xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">À assigner</span>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{pendingCount}</p>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                    En attente de chauffeur
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                  <Package size={20} />
+                </div>
+              </div>
             </button>
+
             <button
               onClick={() => setStatusFilter('IN_PROGRESS')}
               className={cn(
-                'bg-white rounded-xl border p-4 text-left transition-all',
-                statusFilter === 'IN_PROGRESS' ? 'border-purple-400 ring-2 ring-purple-100' : 'border-gray-100 hover:border-purple-200'
+                'bg-white rounded-xl border p-5 text-left transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer',
+                statusFilter === 'IN_PROGRESS'
+                  ? 'border-purple-400 ring-2 ring-purple-200/60 shadow-purple-50'
+                  : 'border-gray-200/80 hover:border-purple-300'
               )}
             >
-              <p className="text-sm text-gray-500">En cours</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">{inProgressCount}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">En cours</span>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{inProgressCount}</p>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-purple-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 inline-block" />
+                    Sur la route
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Truck size={20} />
+                </div>
+              </div>
             </button>
+
             <button
               onClick={() => setStatusFilter('DELIVERED')}
               className={cn(
-                'bg-white rounded-xl border p-4 text-left transition-all',
-                statusFilter === 'DELIVERED' ? 'border-green-400 ring-2 ring-green-100' : 'border-gray-100 hover:border-green-200'
+                'bg-white rounded-xl border p-5 text-left transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer',
+                statusFilter === 'DELIVERED'
+                  ? 'border-emerald-400 ring-2 ring-emerald-200/60 shadow-emerald-50'
+                  : 'border-gray-200/80 hover:border-emerald-300'
               )}
             >
-              <p className="text-sm text-gray-500">Livrées</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">{deliveredCount}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Livrées</span>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{deliveredCount}</p>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Remises aux clients
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle size={20} />
+                </div>
+              </div>
             </button>
+
             <button
               onClick={() => setStatusFilter('FAILED')}
               className={cn(
-                'bg-white rounded-xl border p-4 text-left transition-all',
-                statusFilter === 'FAILED' ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-100 hover:border-red-200'
+                'bg-white rounded-xl border p-5 text-left transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer',
+                statusFilter === 'FAILED'
+                  ? 'border-red-400 ring-2 ring-red-200/60 shadow-red-50'
+                  : 'border-gray-200/80 hover:border-red-300'
               )}
             >
-              <p className="text-sm text-gray-500">Échouées</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">{failedCount}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Échouées</span>
+                  <p className="text-2xl font-bold text-red-600 mt-1">{failedCount}</p>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-red-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                    Nécessite assistance
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle size={20} />
+                </div>
+              </div>
             </button>
           </div>
 

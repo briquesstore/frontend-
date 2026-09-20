@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Download, FileText, Eye, Printer, CheckCircle, RefreshCw } from 'lucide-react';
+import { Search, Download, FileText, Eye, Printer, CheckCircle, RefreshCw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate } from '@/core/utils/formatters';
 import { invoicesApiService, Invoice } from './invoices-api.service';
@@ -85,24 +85,59 @@ export default function InvoicesPage() {
 
       {/* KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Total facturé (payé)</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{formatCFA(totalPaid)}</p>
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total facturé (payé)</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCFA(totalPaid)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                Factures acquittées
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Factures ce mois</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{invoices.length}</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Factures générées</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{invoices.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+                Émises ce mois
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+              <FileText size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 border-l-4 border-l-red-500">
-          <p className="text-sm text-gray-500">Impayés en retard</p>
-          <p className="text-2xl font-bold text-red-600 mt-1">{formatCFA(totalOverdue)}</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Impayés en retard</span>
+              <p className="text-2xl font-bold text-red-600 mt-1">{formatCFA(totalOverdue)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-red-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                Relance client requise
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* DGI compliance badge */}
-      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-lg mb-4 text-xs">
-        <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
-        <span className="text-green-700 font-medium">Factures conformes à la réglementation DGI TVA 18%  Numérotation chronologique Archivage sécurisé 10 ans</span>
+      <div className="flex items-center gap-2.5 p-3.5 bg-gradient-to-r from-emerald-50 to-green-50/60 border border-emerald-200/70 rounded-xl mb-5 text-xs text-emerald-900 shadow-2xs">
+        <ShieldCheck size={18} className="text-emerald-600 flex-shrink-0" />
+        <span className="font-medium">Factures conformes à la réglementation DGI : TVA 18% · Numérotation chronologique continue · Archivage sécurisé 10 ans</span>
       </div>
 
       {loading && (

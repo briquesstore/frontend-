@@ -90,18 +90,52 @@ export default function PaymentsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Paiements confirmés</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{formatCFA(totalConfirmed)}</p>
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Paiements confirmés</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCFA(totalConfirmed)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                Encaissés avec succès
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500">Reste à payer (échéances)</p>
-          <p className="text-2xl font-bold text-yellow-600 mt-1">{formatCFA(totalPending)}</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Reste à payer</span>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCFA(totalPending)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                Échéances en cours
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+              <Clock size={20} />
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 border-l-4 border-l-red-500">
-          <p className="text-sm text-gray-500">Échéances impayées</p>
-          <p className="text-2xl font-bold text-red-600 mt-1">{formatCFA(totalOverdue)}</p>
-          <p className="text-xs text-red-500 mt-1">{overdueInstallments.length} échéances en retard</p>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-xs hover:shadow-md transition-all duration-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Échéances impayées</span>
+              <p className="text-2xl font-bold text-red-600 mt-1">{formatCFA(totalOverdue)}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-red-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                {overdueInstallments.length} échéance{overdueInstallments.length > 1 ? 's' : ''} en retard
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} />
+            </div>
+          </div>
         </div>
       </div>
 
