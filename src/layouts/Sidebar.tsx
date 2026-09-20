@@ -95,8 +95,8 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1 px-3">
+      <nav className="flex-1 py-3 overflow-y-auto custom-scrollbar-dark">
+        <ul className="space-y-0.5 px-2.5">
           {visibleItems.map((item) => {
             const isActive =
               location.pathname === item.path ||
@@ -106,26 +106,33 @@ export default function Sidebar() {
               <li key={item.key}>
                 <button
                   onClick={() => navigate(item.path)}
+                  title={collapsed ? item.label : undefined}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group relative',
                     isActive
-                      ? 'bg-[#FF8C00] text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5',
+                      ? 'bg-[#FF8C00] text-white shadow-sm shadow-[#FF8C00]/20 font-semibold'
+                      : 'text-gray-300 hover:text-white hover:bg-white/5',
+                    collapsed && 'justify-center px-0'
                   )}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className={cn(
+                    'flex-shrink-0 transition-transform group-hover:scale-105',
+                    isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
+                  )}>
+                    {item.icon}
+                  </span>
                   {!collapsed && (
                     <>
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate tracking-wide text-[13.5px]">{item.label}</span>
                       {item.badge != null && item.badge > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                        <span className="ml-auto bg-red-500 text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
                           {item.badge}
                         </span>
                       )}
                     </>
                   )}
                   {collapsed && item.badge != null && item.badge > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#1E1E2D]" />
                   )}
                 </button>
               </li>
