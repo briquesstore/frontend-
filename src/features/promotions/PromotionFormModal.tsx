@@ -62,7 +62,7 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
   useEffect(() => {
     if (form.type === 'FREE_PRODUCT' && products.length === 0) {
       setLoadingProducts(true);
-      apiClient.get<{ data: Product[] }>('/products?pageSize=100')
+      apiClient.get<{ data: Product[] }>('/products/admin?pageSize=100')
         .then(({ data }) => setProducts(data.data || []))
         .catch(console.error)
         .finally(() => setLoadingProducts(false));

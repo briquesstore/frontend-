@@ -35,12 +35,12 @@ export const getProducts = (
   params.append('sortOrder', filters.sortOrder);
 
   return api
-    .get<PaginatedResponse<ProductWithStock>>(`/products?${params.toString()}`)
+    .get<PaginatedResponse<ProductWithStock>>(`/products/admin?${params.toString()}`)
     .then((res) => res.data);
 };
 
 export const getProductById = (id: string): Promise<ProductWithStock> =>
-  api.get<ProductWithStock>(`/products/${id}`).then((res) => res.data);
+  api.get<ProductWithStock>(`/products/admin/${id}`).then((res) => res.data);
 
 export const getProductStats = (): Promise<ProductStats> =>
   api.get<ProductStats>('/products/stats').then((res) => res.data);
