@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { getCategories } from '@/features/products/services/CategoryService';
+import type { Category } from '@/core/types';
 
 interface Product {
   id: string;
@@ -17,6 +19,8 @@ interface PromotionFormData {
   code: string;
   minAmount?: number;
   maxDiscount?: number;
+  productIds: string[];
+  categoryIds: string[];
   freeProductId?: string;
   freeProductQty?: number;
   minQuantity?: number;
@@ -38,8 +42,9 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingTargets, setLoadingTargets] = useState(false);
+
   const [form, setForm] = useState<PromotionFormData>({
     title: editData?.title || '',
     description: editData?.description || '',
@@ -48,6 +53,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
     code: editData?.code || '',
     minAmount: editData?.minAmount || undefined,
     maxDiscount: editData?.maxDiscount || undefined,
+    productIds: editData?.productIds ?? (editData?.productId ? [editData.productId] : []),
+    categoryIds: editData?.categoryIds ?? (editData?.categoryId ? [editData.categoryId] : []),
     freeProductId: editData?.freeProductId || undefined,
     freeProductQty: editData?.freeProductQty || 1,
     minQuantity: editData?.minQuantity || undefined,
@@ -58,16 +65,27 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
     usageLimit: editData?.usageLimit || undefined,
   });
 
-  // Load products for FREE_PRODUCT type
+  // Load products + categories once (produits cibles, produit offert, catégories)
   useEffect(() => {
-    if (form.type === 'FREE_PRODUCT' && products.length === 0) {
-      setLoadingProducts(true);
-      apiClient.get<{ data: Product[] }>('/products/admin?pageSize=100')
-        .then(({ data }) => setProducts(data.data || []))
-        .catch(console.error)
-        .finally(() => setLoadingProducts(false));
-    }
-  }, [form.type, products.length]);
+    if (!isOpen) return;
+    setLoadingTargets(true);
+    Promise.all([
+      apiClient.get<{ data: Product[] }>('/products/admin?pageSize=200')
+        .then(({ data }) => setProducts(data.data || [])),
+      getCategories(false).then(setCategories).catch(console.error),
+    ])
+      .catch(console.error)
+      .finally(() => setLoadingTargets(false));
+  }, [isOpen]);
+
+  const toggleInList = (list: string[], id: string) =>
+    list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+
+  const statusBadge = (status?: Product['status']) => {
+    if (status === 'HIDDEN') return ' — promo';
+    if (status === 'ARCHIVED') return ' — archivé';
+    return '';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +111,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
         value: form.type === 'FREE_PRODUCT' ? 0 : Number(form.value),
         minAmount: form.minAmount ? Number(form.minAmount) : undefined,
         maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : undefined,
+        productIds: form.productIds,
+        categoryIds: form.categoryIds,
         freeProductId: form.type === 'FREE_PRODUCT' ? (form.freeProductId || undefined) : undefined,
         freeProductQty: form.type === 'FREE_PRODUCT' ? Number(form.freeProductQty) : undefined,
         minQuantity: form.type === 'FREE_PRODUCT' ? Number(form.minQuantity) : undefined,
@@ -204,6 +224,70 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
             )}
           </div>
 
+          {/* Ciblage : produits / catégories concernés (vide = toute la commande) */}
+          <div className="p-4 bg-blue-50/60 border border-blue-100 rounded-lg space-y-3">
+            <h4 className="font-semibold text-blue-900">🎯 Produits concernés</h4>
+            <p className="text-xs text-blue-700">
+              La promotion s'applique uniquement aux produits/catégories cochés.
+              Laissez vide pour l'appliquer à toute la commande.
+            </p>
+
+            {loadingTargets ? (
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <Loader2 size={16} className="animate-spin" /> Chargement...
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Produits ({form.productIds.length} sélectionné{form.productIds.length > 1 ? 's' : ''})
+                  </label>
+                  <div className="max-h-36 overflow-y-auto border border-gray-200 rounded-lg bg-white divide-y divide-gray-50">
+                    {products.length === 0 && (
+                      <p className="px-3 py-2 text-sm text-gray-400">Aucun produit</p>
+                    )}
+                    {products.map((p) => (
+                      <label key={p.id} className="flex items-center gap-2 px-3 py-2 hover:bg-orange-50/50 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.productIds.includes(p.id)}
+                          onChange={() => setForm({ ...form, productIds: toggleInList(form.productIds, p.id) })}
+                          className="w-4 h-4 rounded border-gray-300 text-[#FF8C00] focus:ring-[#FF8C00]"
+                        />
+                        <span className="flex-1 truncate">
+                          {p.name} <span className="text-gray-400">({p.reference})</span>
+                          <span className="text-orange-600 text-xs">{statusBadge(p.status)}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Catégories ({form.categoryIds.length} sélectionnée{form.categoryIds.length > 1 ? 's' : ''})
+                  </label>
+                  <div className="max-h-28 overflow-y-auto border border-gray-200 rounded-lg bg-white divide-y divide-gray-50">
+                    {categories.length === 0 && (
+                      <p className="px-3 py-2 text-sm text-gray-400">Aucune catégorie</p>
+                    )}
+                    {categories.map((c) => (
+                      <label key={c.id} className="flex items-center gap-2 px-3 py-2 hover:bg-orange-50/50 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.categoryIds.includes(c.id)}
+                          onChange={() => setForm({ ...form, categoryIds: toggleInList(form.categoryIds, c.id) })}
+                          className="w-4 h-4 rounded border-gray-300 text-[#FF8C00] focus:ring-[#FF8C00]"
+                        />
+                        <span className="flex-1 truncate">{c.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* FREE_PRODUCT specific fields */}
           {form.type === 'FREE_PRODUCT' && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-4">
@@ -213,7 +297,7 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Produit à offrir *</label>
-                {loadingProducts ? (
+                {loadingTargets ? (
                   <div className="flex items-center gap-2 text-gray-500 text-sm">
                     <Loader2 size={16} className="animate-spin" /> Chargement des produits...
                   </div>

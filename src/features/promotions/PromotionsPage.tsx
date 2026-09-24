@@ -21,6 +21,10 @@ interface Promotion {
   minQuantity?: number;
   freeProductName?: string;
   freeProduct?: { id: string; name: string; reference: string };
+  productIds?: string[];
+  categoryIds?: string[];
+  targetProducts?: { id: string; name: string; reference: string; status?: string }[];
+  targetCategories?: { id: string; slug: string; label: string }[];
   usageLimit?: number;
   usageCount: number;
   isActive: boolean;
@@ -239,6 +243,17 @@ export default function PromotionsPage() {
                       <span>Dès {promo.minQuantity} unités commandées</span>
                     </div>
                   )}
+                  {(promo.targetProducts?.length || promo.targetCategories?.length) ? (
+                    <div className="flex items-start gap-2">
+                      <Tag size={12} className="mt-0.5 shrink-0" />
+                      <span>
+                        Cible : {[
+                          ...(promo.targetProducts?.map((p) => p.name) ?? []),
+                          ...(promo.targetCategories?.map((c) => `Cat. ${c.label}`) ?? []),
+                        ].join(', ')}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
 
                 {promo.usageLimit && (
