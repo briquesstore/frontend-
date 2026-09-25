@@ -98,7 +98,7 @@ export default function PromotionsPage() {
   const filtered = promotions.filter((p) => {
     const status = getPromoStatus(p);
     if (statusFilter !== 'ALL' && status !== statusFilter) return false;
-    if (search && !p.code.toLowerCase().includes(search.toLowerCase()) && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !(p.code ?? '').toLowerCase().includes(search.toLowerCase()) && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -201,7 +201,9 @@ export default function PromotionsPage() {
                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">{promo.description}</p>
 
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-mono font-bold text-gray-900">{promo.code}</span>
+                  <span className="px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-mono font-bold text-gray-900">
+                    {promo.code ?? 'AUTO'}
+                  </span>
                   {promo.type === 'PERCENTAGE' && (
                     <span className="text-lg font-bold text-[#FF8C00]">-{promo.value}%</span>
                   )}

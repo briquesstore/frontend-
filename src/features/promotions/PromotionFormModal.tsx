@@ -41,6 +41,30 @@ interface Props {
   editData?: any;
 }
 
+// Hors du composant : reconstruit le formulaire à chaque ouverture
+// (le modal reste monté, useState ne se réinitialise pas tout seul)
+const buildInitialForm = (editData?: any): PromotionFormData => ({
+  title: editData?.title || '',
+  description: editData?.description || '',
+  type: editData?.type || 'PERCENTAGE',
+  value: editData?.value || 10,
+  code: editData?.code || '',
+  minAmount: editData?.minAmount || undefined,
+  maxDiscount: editData?.maxDiscount || undefined,
+  productIds: editData?.productIds ?? (editData?.productId ? [editData.productId] : []),
+  categoryIds: editData?.categoryIds ?? (editData?.categoryId ? [editData.categoryId] : []),
+  freeProductId: editData?.freeProductId || undefined,
+  freeProductQty: editData?.freeProductQty || 1,
+  minQuantity: editData?.minQuantity || undefined,
+  freeProductName: editData?.freeProductName || undefined,
+  startDate: editData?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+  endDate: editData?.endDate?.split('T')[0] || '',
+  isActive: editData?.isActive ?? true,
+  usageLimit: editData?.usageLimit || undefined,
+  imageUrl: editData?.imageUrl || undefined,
+  bannerTheme: editData?.bannerTheme || DEFAULT_BANNER_THEME,
+});
+
 export default function PromotionFormModal({ isOpen, onClose, onSuccess, editData }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,27 +74,13 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState<PromotionFormData>({
-    title: editData?.title || '',
-    description: editData?.description || '',
-    type: editData?.type || 'PERCENTAGE',
-    value: editData?.value || 10,
-    code: editData?.code || '',
-    minAmount: editData?.minAmount || undefined,
-    maxDiscount: editData?.maxDiscount || undefined,
-    productIds: editData?.productIds ?? (editData?.productId ? [editData.productId] : []),
-    categoryIds: editData?.categoryIds ?? (editData?.categoryId ? [editData.categoryId] : []),
-    freeProductId: editData?.freeProductId || undefined,
-    freeProductQty: editData?.freeProductQty || 1,
-    minQuantity: editData?.minQuantity || undefined,
-    freeProductName: editData?.freeProductName || undefined,
-    startDate: editData?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-    endDate: editData?.endDate?.split('T')[0] || '',
-    isActive: editData?.isActive ?? true,
-    usageLimit: editData?.usageLimit || undefined,
-    imageUrl: editData?.imageUrl || undefined,
-    bannerTheme: editData?.bannerTheme || DEFAULT_BANNER_THEME,
-  });
+  const [form, setForm] = useState<PromotionFormData>(() => buildInitialForm(editData));
+
+  // Réinitialise le formulaire à chaque ouverture du modal
+  // (sinon l'édition affiche les valeurs du premier montage = vides)
+  useEffect(() => {
+    if (isOpen) setForm(buildInitialForm(editData));
+  }, [isOpen, editData]);
 
   // Load products + categories once (produits cibles, produit offert, catégories)
   useEffect(() => {
