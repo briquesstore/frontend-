@@ -150,6 +150,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
         // null (et non undefined) pour permettre de retirer l'image en édition
         imageUrl: form.imageUrl || null,
         bannerTheme: form.bannerTheme,
+        // Chaîne vide → null : promo automatique, aucune saisie requise côté client
+        code: form.code.trim() || null,
       };
 
       if (editData?.id) {
@@ -493,11 +495,10 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Code promo *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Code promo (optionnel)</label>
             <div className="flex gap-2">
               <input
                 type="text"
-                required
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                 className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none font-mono"
@@ -511,6 +512,11 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
                 Générer
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Laissez vide : la réduction s'applique automatiquement pour tous les clients.
+              Avec un code, seuls les clients qui le saisissent au panier en profitent
+              (offres privées, codes influenceurs...).
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
