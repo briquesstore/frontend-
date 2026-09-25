@@ -38,10 +38,15 @@ class ApiClient {
   private buildHeaders(options: RequestInit): Headers {
     const token = this.getToken();
     const headers = new Headers({
-      'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
       'Pragma': 'no-cache',
     });
+
+    // Sur un FormData, le navigateur doit poser lui-même le Content-Type
+    // (il y ajoute la boundary multipart)
+    if (!(options.body instanceof FormData)) {
+      headers.set('Content-Type', 'application/json');
+    }
 
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
@@ -142,6 +147,11 @@ class ApiClient {
 
   async delete<T>(endpoint: string): Promise<{ data: T }> {
     return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  /** Upload multipart : conserve le refresh 401 et le header CSRF. */
+  async upload<T>(endpoint: string, formData: FormData): Promise<{ data: T }> {
+    return this.request<T>(endpoint, { method: 'POST', body: formData });
   }
 
   getBaseUrl(): string {

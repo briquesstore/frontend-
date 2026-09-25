@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Loader2, ImagePlus, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { getCategories } from '@/features/products/services/CategoryService';
 import type { Category } from '@/core/types';
+import { BANNER_THEMES, DEFAULT_BANNER_THEME, themeGradient, type BannerThemeKey } from './bannerThemes';
 
 interface Product {
   id: string;
@@ -29,6 +30,8 @@ interface PromotionFormData {
   endDate: string;
   isActive: boolean;
   usageLimit?: number;
+  imageUrl?: string;
+  bannerTheme: BannerThemeKey;
 }
 
 interface Props {
@@ -44,6 +47,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingTargets, setLoadingTargets] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<PromotionFormData>({
     title: editData?.title || '',
@@ -63,6 +68,8 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
     endDate: editData?.endDate?.split('T')[0] || '',
     isActive: editData?.isActive ?? true,
     usageLimit: editData?.usageLimit || undefined,
+    imageUrl: editData?.imageUrl || undefined,
+    bannerTheme: editData?.bannerTheme || DEFAULT_BANNER_THEME,
   });
 
   // Load products + categories once (produits cibles, produit offert, catégories)
@@ -80,6 +87,26 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
 
   const toggleInList = (list: string[], id: string) =>
     list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+
+  /** Envoie l'image vers Cloudinary et stocke l'URL retournée. */
+  const handleImageSelected = async (file: File) => {
+    setError(null);
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await apiClient.upload<{ data: { secureUrl: string; url: string } }>(
+        '/upload/promotions',
+        formData,
+      );
+      setForm((prev) => ({ ...prev, imageUrl: data.data.secureUrl || data.data.url }));
+    } catch (err: any) {
+      setError(err.message || "Échec de l'envoi de l'image");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const statusBadge = (status?: Product['status']) => {
     if (status === 'HIDDEN') return ' — promo';
@@ -120,6 +147,9 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
         usageLimit: form.usageLimit ? Number(form.usageLimit) : undefined,
         startDate: new Date(form.startDate).toISOString(),
         endDate: new Date(form.endDate).toISOString(),
+        // null (et non undefined) pour permettre de retirer l'image en édition
+        imageUrl: form.imageUrl || null,
+        bannerTheme: form.bannerTheme,
       };
 
       if (editData?.id) {
@@ -189,6 +219,111 @@ export default function PromotionFormModal({ isOpen, onClose, onSuccess, editDat
               rows={2}
               placeholder="Description de la promotion..."
             />
+          </div>
+
+          {/* Apparence de la bannière affichée dans le carrousel de l'app */}
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+            <h4 className="font-semibold text-gray-900">🎨 Bannière dans l'app</h4>
+            <p className="text-xs text-gray-500">
+              Choisissez un dégradé. L'image est optionnelle : sans elle, la bannière
+              affiche uniquement le dégradé.
+            </p>
+
+            {/* Aperçu fidèle au rendu de l'app */}
+            <div
+              className="relative h-32 rounded-xl overflow-hidden flex flex-col justify-between p-4"
+              style={{ background: themeGradient(form.bannerTheme) }}
+            >
+              {form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt=""
+                  className="absolute right-0 top-0 h-full w-36 object-cover"
+                  style={{
+                    maskImage: 'linear-gradient(to right, transparent, black 45%)',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent, black 45%)',
+                  }}
+                />
+              )}
+              <div className="relative">
+                <span className="inline-block px-2 py-0.5 rounded bg-white/25 text-[10px] font-bold text-white tracking-wide">
+                  {form.type === 'PERCENTAGE'
+                    ? `-${form.value || 0}%`
+                    : form.type === 'FIXED_AMOUNT'
+                      ? `-${form.value || 0} F`
+                      : form.type === 'FREE_DELIVERY'
+                        ? 'LIVRAISON GRATUITE'
+                        : 'PRODUIT OFFERT'}
+                </span>
+                <p className="mt-1.5 text-white font-extrabold leading-tight line-clamp-2">
+                  {form.title || 'Titre de la promotion'}
+                </p>
+              </div>
+              <span className="relative self-start px-3 py-1.5 bg-white rounded-lg text-xs font-bold text-gray-900">
+                En profiter
+              </span>
+            </div>
+
+            {/* Préréglages de dégradé */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Dégradé</label>
+              <div className="flex flex-wrap gap-2">
+                {BANNER_THEMES.map((theme) => (
+                  <button
+                    key={theme.key}
+                    type="button"
+                    title={theme.label}
+                    onClick={() => setForm({ ...form, bannerTheme: theme.key })}
+                    className={`w-9 h-9 rounded-lg transition ring-offset-2 ${
+                      form.bannerTheme === theme.key ? 'ring-2 ring-gray-900' : 'hover:scale-105'
+                    }`}
+                    style={{ background: themeGradient(theme.key) }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Image optionnelle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Image (optionnelle)
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageSelected(file);
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={uploadingImage}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {uploadingImage ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <ImagePlus size={16} />
+                  )}
+                  {uploadingImage ? 'Envoi...' : form.imageUrl ? 'Remplacer' : 'Choisir une image'}
+                </button>
+                {form.imageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, imageUrl: undefined })}
+                    className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                  >
+                    <Trash2 size={16} /> Retirer
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-gray-400">JPG, PNG ou WebP — 10 MB max</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
