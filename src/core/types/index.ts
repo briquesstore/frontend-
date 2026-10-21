@@ -169,6 +169,9 @@ export interface Product {
   unitPrice: number;
   bulkPrice?: number;
   bulkMinQuantity?: number;
+  minOrderQuantity?: number;
+  quantityStep?: number;
+  unitLabel?: string;
   status: ProductStatus;
   usages: string[];
   images: ProductImage[];

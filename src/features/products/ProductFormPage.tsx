@@ -30,6 +30,9 @@ interface FormData {
   unitPrice: string;
   bulkPrice: string;
   bulkMinQuantity: string;
+  minOrderQuantity: string;
+  quantityStep: string;
+  unitLabel: string;
   status: ProductStatus;
 }
 
@@ -46,6 +49,9 @@ const EMPTY_FORM: FormData = {
   unitPrice: '',
   bulkPrice: '',
   bulkMinQuantity: '',
+  minOrderQuantity: '1',
+  quantityStep: '1',
+  unitLabel: 'Unité',
   status: 'ACTIVE',
 };
 
@@ -96,6 +102,9 @@ export default function ProductFormPage() {
             unitPrice: String(product.unitPrice),
             bulkPrice: product.bulkPrice != null ? String(product.bulkPrice) : '',
             bulkMinQuantity: product.bulkMinQuantity != null ? String(product.bulkMinQuantity) : '',
+            minOrderQuantity: String(product.minOrderQuantity ?? 1),
+            quantityStep: String(product.quantityStep ?? 1),
+            unitLabel: product.unitLabel ?? 'Unité',
             status: product.status,
           });
           if (product.images?.length) {
@@ -193,6 +202,9 @@ export default function ProductFormPage() {
       unitPrice: Math.round(Number(form.unitPrice)),
       bulkPrice: form.bulkPrice ? Math.round(Number(form.bulkPrice)) : undefined,
       bulkMinQuantity: form.bulkMinQuantity ? Math.round(Number(form.bulkMinQuantity)) : undefined,
+      minOrderQuantity: Math.max(1, Math.round(Number(form.minOrderQuantity) || 1)),
+      quantityStep: Math.max(1, Math.round(Number(form.quantityStep) || 1)),
+      unitLabel: form.unitLabel.trim() || undefined,
       status: form.status,
     };
 
@@ -423,6 +435,24 @@ export default function ProductFormPage() {
                     Le prix gros s'applique automatiquement lorsque la quantité commandée atteint le seuil minimum.
                   </p>
                 </div>
+                <h2 className="text-lg font-semibold text-gray-900 pt-4">Règles de commande</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <FieldLabel label="Commande minimum" />
+                    <input type="number" min={1} value={form.minOrderQuantity} onChange={(e) => update('minOrderQuantity', e.target.value)} placeholder="500" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none" />
+                  </div>
+                  <div>
+                    <FieldLabel label="Pas de quantité" />
+                    <input type="number" min={1} value={form.quantityStep} onChange={(e) => update('quantityStep', e.target.value)} placeholder="1" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none" />
+                  </div>
+                  <div>
+                    <FieldLabel label="Unité de vente" />
+                    <input type="text" maxLength={20} value={form.unitLabel} onChange={(e) => update('unitLabel', e.target.value)} placeholder="Unité, Tonne, Voyage..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#FF8C00] outline-none" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Exemple gravier : minimum 15, pas 5 → le client commande 15, 20, 25 tonnes. Laissez le pas à 1 pour une quantité libre au-delà du minimum.
+                </p>
               </div>
             )}
 

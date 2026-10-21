@@ -16,6 +16,9 @@ export interface ProductWithStock {
   unitPrice: number;
   bulkPrice?: number;
   bulkMinQuantity?: number;
+  minOrderQuantity?: number;
+  quantityStep?: number;
+  unitLabel?: string;
   status: ProductStatus;
   usages: string[];
   images: { id: string; url: string; isPrimary: boolean; sortOrder: number }[];
@@ -61,6 +64,9 @@ export interface CreateProductPayload {
   unitPrice: number;
   bulkPrice?: number;
   bulkMinQuantity?: number;
+  minOrderQuantity?: number;
+  quantityStep?: number;
+  unitLabel?: string;
   status?: ProductStatus;
   usages?: string[];
 }
