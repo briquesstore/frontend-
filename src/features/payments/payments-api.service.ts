@@ -10,6 +10,9 @@ export interface Payment {
   customerName: string;
   amount: number;
   method: string;
+  /** PSP ayant vérifié le paiement ('FEEXPAY'). null = legacy / démo / saisie admin. */
+  provider?: 'FEEXPAY' | null;
+  providerTxId?: string | null;
   status: PaymentStatus;
   type: PaymentType;
   installmentLabel?: string;

@@ -261,7 +261,17 @@ export default function PaymentsPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{p.customerName}</td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatCFA(p.amount)}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.method}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {p.method}
+                        {p.provider === 'FEEXPAY' && (
+                          <span
+                            className="ml-2 text-xs text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded"
+                            title={`Vérifié FeexPay${p.providerTxId ? ` — ${p.providerTxId}` : ''}`}
+                          >
+                            FeexPay
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold', cfg.bg, cfg.color)}>
                           {cfg.icon} {cfg.label}
