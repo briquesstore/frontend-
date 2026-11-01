@@ -406,7 +406,7 @@ export default function SettingsPage() {
                 PAYMENT_METHODS.map((m) => (
                   <SettingCard key={m.key} label={m.label} description={m.description}>
                     <ToggleSwitch
-                      enabled={paymentMethods[m.key]}
+                      enabled={paymentMethods[m.key] ?? false}
                       disabled={paymentSavingKey === m.key}
                       onToggle={() => handleTogglePayment(m.key, m.label)}
                     />
