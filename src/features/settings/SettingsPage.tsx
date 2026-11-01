@@ -9,6 +9,7 @@ import { ROLE_LABELS } from '@/core/types';
 import { usersApi, type BackofficeUser } from '@/core/api/users.api';
 import { auditApi, type AuditLog } from '@/core/api/audit.api';
 import { issuerProfileApi, type IssuerProfile, type CreateIssuerProfileDto } from '@/core/api/issuer-profile.api';
+import { settingsApi } from '@/core/api/settings.api';
 
 type Tab = 'users' | 'payments' | 'delivery' | 'invoicing' | 'notifications' | 'preorders' | 'audit';
 
@@ -34,11 +35,30 @@ function SettingCard({ label, description, children }: { label: string; descript
   );
 }
 
-function ToggleSwitch({ enabled }: { enabled: boolean }) {
-  return enabled
-    ? <ToggleRight size={28} className="text-[#FF8C00] cursor-pointer" />
-    : <ToggleLeft size={28} className="text-gray-300 cursor-pointer" />;
+function ToggleSwitch({ enabled, onToggle, disabled }: { enabled: boolean; onToggle?: () => void; disabled?: boolean }) {
+  const icon = enabled
+    ? <ToggleRight size={28} className={disabled ? 'text-orange-300' : 'text-[#FF8C00]'} />
+    : <ToggleLeft size={28} className={disabled ? 'text-gray-200' : 'text-gray-300'} />;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled || !onToggle}
+      className={cn('transition-opacity', onToggle ? 'cursor-pointer hover:opacity-80' : 'cursor-default', disabled && 'opacity-50 cursor-wait')}
+      aria-pressed={enabled}
+    >
+      {icon}
+    </button>
+  );
 }
+
+const PAYMENT_METHODS: { key: string; label: string; description: string }[] = [
+  { key: 'pm.orange_money', label: 'Orange Money', description: 'Via FeexPay' },
+  { key: 'pm.mtn_money', label: 'MTN Money', description: 'Via FeexPay' },
+  { key: 'pm.moov_money', label: 'Moov Money', description: 'Via FeexPay' },
+  { key: 'pm.wave', label: 'Wave', description: 'Via FeexPay / Wave Business' },
+  { key: 'pm.card', label: 'Carte bancaire (Visa/Mastercard)', description: 'Via FeexPay' },
+];
 
 const JURIDICAL_FORMS = ['SARL', 'SA', 'SAS', 'SNC', 'EURL', 'GIE', 'Association'];
 const FISCAL_REGIMES = ['Réel Normal', 'Réel Simplifié', 'Forfait', 'Synthétique'];
@@ -85,6 +105,18 @@ export default function SettingsPage() {
   const [issuerSaving, setIssuerSaving] = useState(false);
   const [issuerSuccess, setIssuerSuccess] = useState(false);
   const [issuerError, setIssuerError] = useState<string | null>(null);
+
+  // Moyens de paiement : defauts identiques a l'app mobile si aucune clef en base
+  const [paymentMethods, setPaymentMethods] = useState<Record<string, boolean>>({
+    'pm.orange_money': true,
+    'pm.mtn_money': true,
+    'pm.moov_money': true,
+    'pm.wave': true,
+    'pm.card': false,
+  });
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentSavingKey, setPaymentSavingKey] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Charger les utilisateurs
   useEffect(() => {
@@ -158,6 +190,47 @@ export default function SettingsPage() {
       loadIssuerProfile();
     }
   }, [activeTab]);
+
+  // Charger les moyens de paiement quand l'onglet s'ouvre
+  useEffect(() => {
+    if (activeTab !== 'payments') return;
+    const load = async () => {
+      setPaymentLoading(true);
+      setPaymentError(null);
+      try {
+        const configs = await settingsApi.getByGroup('payments');
+        setPaymentMethods((prev) => {
+          const next = { ...prev };
+          for (const c of configs) {
+            if (c.key in next) next[c.key] = c.value === 'true';
+          }
+          return next;
+        });
+      } catch (err) {
+        console.error('Erreur chargement moyens de paiement:', err);
+        setPaymentError('Impossible de charger la configuration. Valeurs par défaut affichées.');
+      } finally {
+        setPaymentLoading(false);
+      }
+    };
+    load();
+  }, [activeTab]);
+
+  const handleTogglePayment = async (key: string, label: string) => {
+    const next = !paymentMethods[key];
+    setPaymentMethods((prev) => ({ ...prev, [key]: next }));
+    setPaymentSavingKey(key);
+    setPaymentError(null);
+    try {
+      await settingsApi.update(key, String(next), label);
+    } catch (err) {
+      console.error('Erreur sauvegarde moyen de paiement:', err);
+      setPaymentMethods((prev) => ({ ...prev, [key]: !next }));
+      setPaymentError(`Échec de la mise à jour de ${label}.`);
+    } finally {
+      setPaymentSavingKey(null);
+    }
+  };
 
   // Sauvegarder le profil émetteur
   const handleSaveIssuerProfile = async (e: React.FormEvent) => {
@@ -317,22 +390,29 @@ export default function SettingsPage() {
           {/* Payments Config */}
           {activeTab === 'payments' && (
             <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-5">Configuration des paiements</h2>
-              <SettingCard label="Orange Money" description="Via CinetPay / PayDunya">
-                <ToggleSwitch enabled={true} />
-              </SettingCard>
-              <SettingCard label="MTN Money" description="Via CinetPay / PayDunya">
-                <ToggleSwitch enabled={true} />
-              </SettingCard>
-              <SettingCard label="Wave" description="Via Wave Business API">
-                <ToggleSwitch enabled={true} />
-              </SettingCard>
-              <SettingCard label="Carte bancaire (Visa/Mastercard)" description="Via Stripe ou PayDunya">
-                <ToggleSwitch enabled={true} />
-              </SettingCard>
-              <SettingCard label="Virement bancaire" description="Paiement manuel, validation par l'admin">
-                <ToggleSwitch enabled={true} />
-              </SettingCard>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Moyens de paiement</h2>
+              <p className="text-xs text-gray-500 mb-5">
+                Moyens de paiement proposés dans l'application mobile à l'écran de paiement.
+              </p>
+              {paymentError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4 text-sm">
+                  <AlertTriangle size={16} className="text-red-600 flex-shrink-0" />
+                  <span className="text-red-700">{paymentError}</span>
+                </div>
+              )}
+              {paymentLoading ? (
+                <div className="py-8 text-center text-sm text-gray-500">Chargement...</div>
+              ) : (
+                PAYMENT_METHODS.map((m) => (
+                  <SettingCard key={m.key} label={m.label} description={m.description}>
+                    <ToggleSwitch
+                      enabled={paymentMethods[m.key]}
+                      disabled={paymentSavingKey === m.key}
+                      onToggle={() => handleTogglePayment(m.key, m.label)}
+                    />
+                  </SettingCard>
+                ))
+              )}
             </div>
           )}
 
