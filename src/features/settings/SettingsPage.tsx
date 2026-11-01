@@ -60,8 +60,8 @@ const PAYMENT_METHODS: { key: string; label: string; description: string }[] = [
   { key: 'pm.card', label: 'Carte bancaire (Visa/Mastercard)', description: 'Via FeexPay' },
 ];
 
-const JURIDICAL_FORMS = ['SARL', 'SA', 'SAS', 'SNC', 'EURL', 'GIE', 'Association'];
-const FISCAL_REGIMES = ['Réel Normal', 'Réel Simplifié', 'Forfait', 'Synthétique'];
+const JURIDICAL_FORMS = ['SARLU', 'SARL', 'SA', 'SAS', 'SASU', 'SNC', 'GIE', 'Entreprise individuelle', 'Association'];
+const FISCAL_REGIMES = ["Réel Normal d'Imposition (RNI)", "Réel Simplifié d'Imposition (RSI)", 'Régime de la Microentreprise (RME)', "Taxe d'État de l'Entreprenant (TEE)", 'Réel Normal', 'Réel Simplifié'];
 
 interface IssuerFormData {
   raisonSociale: string;
@@ -72,6 +72,7 @@ interface IssuerFormData {
   ncc: string;
   idu: string;
   regimeFiscal: string;
+  centreImpots: string;
   telephone: string;
   email: string;
   logoUrl: string;
@@ -86,6 +87,7 @@ const initialIssuerForm: IssuerFormData = {
   ncc: '',
   idu: '',
   regimeFiscal: '',
+  centreImpots: '',
   telephone: '',
   email: '',
   logoUrl: '',
@@ -174,6 +176,7 @@ export default function SettingsPage() {
           ncc: profile.ncc || '',
           idu: profile.idu || '',
           regimeFiscal: profile.regimeFiscal || '',
+          centreImpots: profile.centreImpots || '',
           telephone: profile.telephone || '',
           email: profile.email || '',
           logoUrl: profile.logoUrl || '',
@@ -249,6 +252,7 @@ export default function SettingsPage() {
         ncc: issuerForm.ncc,
         idu: issuerForm.idu,
         regimeFiscal: issuerForm.regimeFiscal,
+        centreImpots: issuerForm.centreImpots || undefined,
         telephone: issuerForm.telephone,
         email: issuerForm.email,
         logoUrl: issuerForm.logoUrl || undefined,
@@ -616,6 +620,21 @@ export default function SettingsPage() {
                       </select>
                     </div>
 
+                    {/* Centre des impôts de rattachement */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Centre des impôts de rattachement
+                      </label>
+                      <input
+                        type="text"
+                        value={issuerForm.centreImpots}
+                        onChange={(e) => setIssuerForm({ ...issuerForm, centreImpots: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-[#FF8C00] focus:border-[#FF8C00] outline-none"
+                        placeholder="Ex: CME Cocody"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Mention obligatoire sur les factures (indiqué sur la DFE).</p>
+                    </div>
+
                     {/* Téléphone */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -713,6 +732,7 @@ export default function SettingsPage() {
                             ncc: issuerProfile.ncc || '',
                             idu: issuerProfile.idu || '',
                             regimeFiscal: issuerProfile.regimeFiscal || '',
+                            centreImpots: issuerProfile.centreImpots || '',
                             telephone: issuerProfile.telephone || '',
                             email: issuerProfile.email || '',
                             logoUrl: issuerProfile.logoUrl || '',

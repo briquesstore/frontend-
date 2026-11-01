@@ -11,6 +11,7 @@ export interface IssuerProfile {
   ncc: string;
   idu: string;
   regimeFiscal: string;
+  centreImpots?: string | null;
   telephone: string;
   email: string;
   logoUrl?: string;
@@ -27,6 +28,7 @@ export interface CreateIssuerProfileDto {
   ncc: string;
   idu: string;
   regimeFiscal: string;
+  centreImpots?: string;
   telephone: string;
   email: string;
   logoUrl?: string;
