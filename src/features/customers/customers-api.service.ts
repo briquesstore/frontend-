@@ -54,6 +54,21 @@ export interface CustomerClaim {
   createdAt: string;
 }
 
+export interface CustomerReferrer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  referralCode?: string;
+}
+
+export interface CustomerReferral {
+  id: string;
+  firstName: string;
+  lastName: string;
+  createdAt: string;
+  phoneVerified: boolean;
+}
+
 export interface CustomerDetail {
   id: string;
   firstName: string;
@@ -69,10 +84,26 @@ export interface CustomerDetail {
   totalRevenue: number;
   averageBasket: number;
   lastOrderDate?: string;
+  referralCode?: string;
+  isSalesAgent: boolean;
+  salesAgentSince?: string;
+  referredBy?: CustomerReferrer;
+  referredAt?: string;
+  referrals: CustomerReferral[];
   projects: CustomerProject[];
   recentOrders: CustomerOrder[];
   claims: CustomerClaim[];
   notes: any[];
+}
+
+export interface SalesAgentRank {
+  agentId: string;
+  nom: string;
+  salesAgentSince?: string;
+  inscrits: number;
+  clients: number;
+  caTotal: number;
+  periode: { from: string | null; to: string | null };
 }
 
 export interface CustomersListResponse {
@@ -104,6 +135,24 @@ export class CustomersApiService {
 
   async getCustomerDetail(id: string): Promise<CustomerDetail> {
     const response = await apiClient.get<CustomerDetail>(`/admin/customers/${id}`);
+    return response.data;
+  }
+
+  async toggleSalesAgent(id: string, activate: boolean) {
+    const response = await apiClient.patch(`/admin/customers/${id}/sales-agent`, {
+      activate,
+    });
+    return response.data;
+  }
+
+  async getSalesAgentsRanking(params: { from?: string; to?: string } = {}): Promise<SalesAgentRank[]> {
+    const queryParams = new URLSearchParams();
+    if (params.from) queryParams.append('from', params.from);
+    if (params.to) queryParams.append('to', params.to);
+    const queryString = queryParams.toString();
+    const response = await apiClient.get<SalesAgentRank[]>(
+      `/admin/sales-agents/ranking${queryString ? `?${queryString}` : ''}`,
+    );
     return response.data;
   }
 }

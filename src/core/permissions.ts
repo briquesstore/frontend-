@@ -9,6 +9,7 @@ const MODULE_ACCESS: Record<string, Role[]> = {
   stock:       ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS'],
   logistics:   ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS'],
   customers:   ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
+  'sales-agents': ['SUPER_ADMIN', 'ADMIN'],
   claims:      ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
   refunds:     ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS', 'SERVICE_CLIENT'],
   reports:     ['SUPER_ADMIN', 'ADMIN', 'COMMERCIAL_LOGISTICS'],

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, ShoppingCart, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, ShoppingCart, AlertTriangle, MapPin, RefreshCw, Gift, Users, BadgeCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCFA, formatDate, formatDateTime } from '@/core/utils/formatters';
 import ContactActions from '@/components/ContactActions';
@@ -16,6 +16,8 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [togglingAgent, setTogglingAgent] = useState(false);
+  const [toggleError, setToggleError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!customerId) return;
@@ -32,6 +34,21 @@ export default function CustomerDetailPage() {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement du client');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleSalesAgent = async () => {
+    if (!customerId || !customer) return;
+    setTogglingAgent(true);
+    setToggleError(null);
+    try {
+      await customersApiService.toggleSalesAgent(customerId, !customer.isSalesAgent);
+      // Recharge la fiche : l'état affiché reflète toujours le serveur
+      await fetchCustomer();
+    } catch (err) {
+      setToggleError(err instanceof Error ? err.message : 'Erreur lors du changement de statut');
+    } finally {
+      setTogglingAgent(false);
     }
   };
 
@@ -228,6 +245,100 @@ export default function CustomerDetailPage() {
               <div><span className="text-gray-500">Type :</span> <span className="font-medium text-gray-900">{customer.clientType === 'PROFESSIONNEL' ? 'Professionnel' : 'Particulier'}</span></div>
               {customer.companyName && (
                 <div><span className="text-gray-500">Entreprise :</span> <span className="font-medium text-gray-900">{customer.companyName}</span></div>
+              )}
+            </div>
+          </div>
+
+          {/* Parrainage & Commercial */}
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Gift size={16} className="text-[#FF8C00]" />
+              <h3 className="text-base font-semibold text-gray-900">Parrainage</h3>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="text-gray-500">Code de parrainage :</span>{' '}
+                <span className="font-mono font-semibold text-gray-900">{customer.referralCode || '—'}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Parrain :</span>{' '}
+                <span className="font-medium text-gray-900">
+                  {customer.referredBy
+                    ? `${customer.referredBy.firstName} ${customer.referredBy.lastName}${customer.referredBy.referralCode ? ` (${customer.referredBy.referralCode})` : ''}`
+                    : '—'}
+                </span>
+              </div>
+              {customer.referredAt && (
+                <div>
+                  <span className="text-gray-500">Parrainé le :</span>{' '}
+                  <span className="font-medium text-gray-900">{formatDate(customer.referredAt)}</span>
+                </div>
+              )}
+
+              {/* Filleuls — sans téléphone (confidentialité) */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Users size={14} className="text-gray-400" />
+                  <span className="text-gray-500">Filleuls ({customer.referrals.length})</span>
+                </div>
+                {customer.referrals.length === 0 ? (
+                  <p className="text-xs text-gray-400">Aucun filleul</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {customer.referrals.map((r) => (
+                      <li key={r.id} className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-gray-800">
+                          {r.firstName} {r.lastName}
+                        </span>
+                        {r.phoneVerified && (
+                          <BadgeCheck size={14} className="text-green-600" />
+                        )}
+                        <span className="text-xs text-gray-400 ml-auto">
+                          {formatDate(r.createdAt)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Toggle statut commercial */}
+            <div className="mt-5 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Statut commercial</p>
+                  {customer.isSalesAgent && customer.salesAgentSince && (
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Actif depuis le {formatDate(customer.salesAgentSince)}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handleToggleSalesAgent}
+                  disabled={togglingAgent}
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50',
+                    customer.isSalesAgent
+                      ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                      : 'bg-[#FF8C00] text-white hover:bg-[#E67E00]',
+                  )}
+                >
+                  {togglingAgent
+                    ? 'Mise à jour…'
+                    : customer.isSalesAgent
+                      ? 'Désactiver'
+                      : 'Activer Commercial'}
+                </button>
+              </div>
+              {customer.isSalesAgent && (
+                <p className="text-xs text-gray-400 mt-2">
+                  La désactivation conserve l'historique du compte commercial.
+                </p>
+              )}
+              {toggleError && (
+                <p className="text-xs text-red-600 mt-2">{toggleError}</p>
               )}
             </div>
           </div>

@@ -19,6 +19,7 @@ import {
   MessageCircle,
   MessageSquare,
   Mail,
+  Award,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/core/stores/auth.store';
@@ -46,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'logistics', label: 'Logistique', path: '/admin/logistics', icon: <Truck size={20} />, module: 'logistics' },
   { key: 'drivers', label: 'Livreurs', path: '/admin/drivers', icon: <Truck size={20} />, module: 'logistics' },
   { key: 'customers', label: 'Clients', path: '/admin/customers', icon: <Users size={20} />, module: 'customers' },
+  { key: 'sales-agents', label: 'Commerciaux', path: '/admin/sales-agents', icon: <Award size={20} />, module: 'sales-agents' },
   { key: 'claims', label: 'Réclamations', path: '/admin/claims', icon: <AlertTriangle size={20} />, module: 'claims' },
   { key: 'refunds', label: 'Remboursements', path: '/admin/refunds', icon: <RotateCcw size={20} />, module: 'refunds' },
   { key: 'waitlist', label: 'Liste d\'attente', path: '/admin/waitlist', icon: <Mail size={20} />, module: 'waitlist' },
